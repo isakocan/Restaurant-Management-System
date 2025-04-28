@@ -1,0 +1,54 @@
+Restoran Yönetim Sistemi (Son Versiyon)
+Bu sistem, bir restoranın temel masa yönetimi, sipariş alma, anlık operasyon takibi, menü yönetimi, kullanıcı erişimi ve günlük satış raporlama ihtiyaçlarını karşılamak üzere tasarlanmıştır. Sistem 5 ana modülden oluşmaktadır:
+1. Masa ve Sipariş Yönetimi Modülü
+Sorumlu Kullanıcılar: Garson, Kasiyer
+Amaç: Masaların doluluk durumunu takip etmek, müşterilerden sipariş almak, siparişleri düzenlemek, sipariş yaşam döngüsünü (alındı, ödendi) yönetmek ve ödeme sonrası masayı serbest bırakmak.
+Özellikler:
+Restoranın masa listesini veya planını anlık durumuyla (Boş / Dolu) görüntüler.
+Boş bir masaya tıklandığında, masa otomatik olarak "Dolu" durumuna geçer ve sipariş girişi başlar.
+"Dolu" bir masaya tıklandığında, mevcut sipariş detayları (ürünler, adetler, toplam tutar) görüntülenir ve siparişe ürün ekleme/çıkarma imkanı sunulur.
+"Sipariş Alındı" Butonu: Sipariş girişi tamamlandığında veya güncellendiğinde kullanılır. Tıklandığında:
+Siparişin alındığı anın saati kaydedilir.
+Siparişi alan (giriş yapmış olan) garsonun kimliği kaydedilir.
+Bu butonun yerini "Ödeme Yapıldı" butonu alır.
+"Ödeme Yapıldı" Butonu: Müşteriden ödeme alındığında kullanılır. Tıklandığında:
+Sipariş "Ödendi" olarak işaretlenir (Raporlama modülü için).
+İlgili masanın durumu otomatik olarak "Boş" olarak güncellenir.
+"Siparişi Sil" Butonu: Hatalı girilen veya iptal edilen siparişler için kullanılır. Tıklandığında:
+Sipariş sistemden kaldırılır (Rapora yansımaz).
+İlgili masanın durumu otomatik olarak "Boş" olarak güncellenir.
+2. Menü Yönetimi Modülü
+Sorumlu Kullanıcı: Yönetici
+Amaç: Restoranın dijital menüsünü oluşturmak ve güncel tutmak.
+Özellikler:
+Menüye yeni ürün (yemek/içecek) ekleme (Ürün Adı, Fiyatı).
+Mevcut bir ürünü menüden kaldırma.
+Mevcut bir ürünün fiyatını güncelleme.
+3. Aktif Siparişler Ekranı
+Sorumlu Kullanıcılar: Yönetici, Garson (Salt Okunur Erişim)
+Amaç: Restoranda anlık olarak devam eden (henüz ödemesi alınmamış) tüm siparişlerin özet bir görünümünü sunmak.
+Özellikler:
+Sistemdeki durumu "Dolu" olan tüm masaları anlık olarak listeler.
+Her masa için aşağıdaki bilgileri gösterir:
+Masa Numarası veya Adı.
+Siparişin Alındığı Saat (HH:MM formatında).
+Siparişi Alan Garsonun Adı/Kimliği.
+Siparişin o anki güncel ara toplam tutarı.
+Bu ekran yalnızca bilgi görüntüleme amaçlıdır; herhangi bir sipariş veya masa işlemi buradan yapılamaz.
+Bir masanın ödemesi alındığında veya siparişi silindiğinde, ilgili masa bu listeden otomatik olarak kaldırılır.
+4. Kullanıcı Yönetimi Modülü
+Sorumlu Kullanıcı: Yönetici
+Amaç: Sisteme erişim sağlayacak personeli tanımlamak ve yetkilerini yönetmek.
+Özellikler:
+Yeni kullanıcı (Garson, Yönetici) ekleme (Kullanıcı adı, şifre, rol ataması).
+Mevcut kullanıcıları silme.
+Kullanıcı bilgilerini (örn: şifre, rol) düzenleme.
+5. Günlük Satış Raporlama Modülü
+Sorumlu Kullanıcı: Yönetici
+Amaç: Belirli bir güne ait satış performansını özetlemek.
+Özellikler:
+Rapor alınmak istenen tarihi seçme imkanı (varsayılan olarak içinde bulunulan gün).
+Seçilen tarih için, "Ödendi" olarak işaretlenmiş tüm siparişlere dayanarak:
+Satılan tüm ürünlerin listesini gösterir.
+Her bir üründen o gün toplam kaç adet satıldığını gösterir.
+O gün elde edilen toplam geliri (ödenen tüm siparişlerin toplam tutarı) gösterir.
