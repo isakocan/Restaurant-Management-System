@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Çalışan Girişi</title>
+  <link rel="stylesheet" href="calisan.css">
+</head>
+<body>
+  <div class="giris-kutusu">
+    <h2>Çalışan Girişi</h2>
+    <input type="text" id="kullanici" placeholder="Kullanıcı Adı">
+    <input type="password" id="sifre" placeholder="Şifre">
+    <button onclick="girisYap()">Giriş Yap</button>
+  </div>
+
+  <script>
+    function girisYap() {
+      const kullanici = document.getElementById("kullanici").value;
+      localStorage.setItem("calisan", kullanici);
+      window.location.href = "calisan.html";
+    }
+  </script>
+</body>
+</html>

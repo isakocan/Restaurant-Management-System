@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Restoran Masa Yönetimi</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="ust-menu">
+    <button onclick="toggleMenu()">☰</button>
+    <div id="dropdown" class="gizli">
+      <a href="giris.html">Çalışan Girişi</a>
+      <a href="yonetici.html">Yönetici Girişi</a>
+    </div>
+  </div>
+
+  <h1>Restoran Masa Planı</h1>
+  <div class="masa-container">
+    <div class="masa boş" onclick="window.location.href='menu.html'">Masa 1</div>
+    <div class="masa dolu">Masa 2</div>
+    <div class="masa boş" onclick="window.location.href='menu.html'">Masa 3</div>
+    <div class="masa dolu">Masa 4</div>
+    <div class="masa boş" onclick="window.location.href='menu.html'">Masa 5</div>
+  </div>
+
+  <script>
+    function toggleMenu() {
+      document.getElementById("dropdown").classList.toggle("gizli");
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Menü Seçimi</title>
+  <link rel="stylesheet" href="menu.css">
+</head>
+<body>
+  <h1>Menü</h1>
+  <div class="kategori-listesi">
+    <button onclick="kategoriSec('anayemek')">Ana Yemekler</button>
+    <button onclick="kategoriSec('icecek')">İçecekler</button>
+    <button onclick="kategoriSec('tatli')">Tatlılar</button>
+  </div>
+  <div id="urunler" class="urunler"></div>
+  <div class="sepet">
+    <h2>Sepet</h2>
+    <ul id="sepet-listesi"></ul>
+    <p><strong>Toplam:</strong> <span id="toplam">0</span> TL</p>
+    <button onclick="onaylaSepet()">Onayla</button>
+    <button onclick="temizleSepet()">Temizle</button>
+  </div>
+  <script src="menu.js"></script>
+</body>
+</html>

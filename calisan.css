@@ -1,0 +1,43 @@
+body {
+  font-family: sans-serif;
+  background: #f0f0f0;
+  text-align: center;
+  padding: 20px;
+  margin: 0;
+}
+
+.giris-kutusu {
+  background: white;
+  width: 300px;
+  margin: auto;
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 100px;
+}
+
+.giris-kutusu input {
+  display: block;
+  width: 90%;
+  margin: 10px auto;
+  padding: 10px;
+}
+
+.panel {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  margin-top: 30px;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  background: white;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  text-align: left;
+}

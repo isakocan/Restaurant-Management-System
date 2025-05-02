@@ -1,0 +1,76 @@
+body {
+  font-family: sans-serif;
+  background-color: #f5f5f5;
+  text-align: center;
+  padding: 20px;
+  margin: 0;
+}
+
+h1 {
+  margin-top: 60px;
+  margin-bottom: 30px;
+}
+
+.masa-container {
+  display: grid;
+  grid-template-columns: repeat(3, 150px);
+  gap: 20px;
+  justify-content: center;
+}
+
+.masa {
+  padding: 20px;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  color: white;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.masa:hover {
+  transform: scale(1.05);
+}
+
+.boş {
+  background-color: #4caf50;
+}
+
+.dolu {
+  background-color: #f44336;
+  cursor: not-allowed;
+}
+
+.ust-menu {
+  position: fixed;
+  top: 10px;
+  right: 20px;
+  z-index: 100;
+}
+
+.ust-menu button {
+  font-size: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+#dropdown {
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 6px;
+  text-align: left;
+  margin-top: 5px;
+}
+
+#dropdown a {
+  display: block;
+  margin: 5px 0;
+  text-decoration: none;
+  color: black;
+}
+
+.gizli {
+  display: none;
+}
