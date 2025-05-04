@@ -1,0 +1,832 @@
+/* style.css (TAMAMI - Güncellenmiş Hali) */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --primary-color: #007bff; /* Ana Mavi */
+    --secondary-color: #6c757d; /* Gri */
+    --success-color: #28a745; /* Yeşil */
+    --danger-color: #dc3545; /* Kırmızı */
+    --warning-color: #ffc107; /* Sarı/Turuncu */
+    --info-color: #17a2b8; /* Açık Mavi */
+    --light-color: #f8f9fa; /* Açık Gri */
+    --dark-color: #343a40; /* Koyu Gri */
+    --masa-bos-bg: #90ee90; /* Açık Yeşil */
+    --masa-dolu-bg: #f08080; /* Açık Kırmızı */
+    --masa-bos-hover: #7fdd7f;
+    --masa-text-dolu: #fff;
+    --masa-text-bos: #333;
+    --white-color: #ffffff;
+}
+
+body {
+    font-family: 'Poppins', sans-serif; /* Yeni fontu uygula */
+    margin: 0;
+    padding: 0;
+    background-color: var(--light-color); /* Daha açık bir gri tonu */
+    color: var(--dark-color); /* Daha koyu gri metin rengi */
+    line-height: 1.6; /* Satır yüksekliği */
+}
+
+/* --- Genel Buton Stilleri --- */
+button, .button { /* Tüm butonlar ve buton gibi görünen linkler için */
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px; /* Köşeleri yuvarlat */
+    cursor: pointer;
+    font-size: 0.95em;
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease; /* Yumuşak geçiş */
+    margin: 2px 4px; /* Butonlar arasına boşluk */
+    font-weight: 500;
+    text-decoration: none; /* Linkler için */
+    display: inline-block; /* Linkler için */
+    vertical-align: middle;
+}
+
+button:hover, .button:hover {
+    opacity: 0.9; /* Hover'da hafif soluklaşma */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Hafif hover gölgesi */
+}
+button:active, .button:active {
+    transform: scale(0.98); /* Tıklama efekti */
+    box-shadow: none; /* Tıklarken gölgeyi kaldır */
+}
+button:disabled, .button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* --- Buton Renk Sınıfları --- */
+.btn-success, .sepete-ekle-btn, #siparis-onayla-btn, .isleme-al-btn {
+    background-color: var(--success-color);
+    color: var(--white-color);
+}
+.btn-danger, #sepet-temizle-btn, .kullanici-sil-btn, .urun-sil-btn, #calisan-cikis-yap-btn, #yonetici-cikis-yap-btn {
+     background-color: var(--danger-color);
+     color: var(--white-color);
+ }
+.btn-warning, .kullanici-duzenle-btn, .urun-duzenle-btn, .odeme-yapildi-btn {
+     background-color: var(--warning-color);
+     color: var(--dark-color); /* Koyu renk üstüne açık renk */
+ }
+.btn-info, .detay-goster-btn, .rapor-detay-btn, #yonetici-giris-yap-btn, #calisan-giris-yap-btn, #kullanici-kaydet-btn, #urun-kaydet-btn, #rapor-goster-btn, #tum-rapor-goster-btn, #profil-guncelle-btn {
+     background-color: var(--info-color);
+     color: var(--white-color);
+ }
+ .btn-secondary, #kullanici-form-temizle-btn, #urun-form-temizle-btn {
+     background-color: var(--secondary-color);
+     color: var(--white-color);
+ }
+ .btn-primary { /* Genel birincil eylem butonu */
+     background-color: var(--primary-color);
+     color: var(--white-color);
+ }
+ .btn-light, .sepetten-cikar-btn { /* Sepetten çıkar gibi daha az önemli eylemler */
+     background-color: #ddd;
+     color: var(--dark-color);
+     padding: 3px 8px;
+     font-size: 0.85em;
+ }
+ .sepetten-cikar-btn {
+      color: var(--danger-color); /* Çıkarma butonu daha belirgin */
+ }
+
+/* --- Header --- */
+header {
+    background-color: var(--dark-color); /* Değişken kullanımı */
+    color: var(--white-color);
+    padding: 1rem 20px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Header altına hafif gölge */
+}
+
+header h1 {
+    margin: 0;
+    flex-grow: 1;
+    text-align: center;
+    font-weight: 600; /* Biraz daha kalın başlık */
+}
+
+#hamburger-menu {
+    background: none;
+    border: none;
+    color: var(--white-color);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0 15px 0 0;
+    position: absolute;
+    left: 20px;
+}
+
+/* --- Sidebar --- */
+.sidebar {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 1001; /* Modalın üzerinde olabilir */
+    top: 0;
+    left: 0;
+    background-color: #222;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+    box-shadow: 3px 0 6px rgba(0,0,0,0.2); /* Sidebar açılınca gölge */
+  }
+
+  .sidebar a {
+    padding: 12px 15px 12px 32px; /* Biraz daha dikey boşluk */
+    text-decoration: none;
+    font-size: 18px; /* Biraz küçülttük */
+    color: #ccc; /* Daha açık gri */
+    display: block;
+    transition: 0.3s;
+    border-left: 3px solid transparent; /* Vurgu için */
+  }
+
+  .sidebar a:hover {
+    color: var(--white-color);
+    background-color: #333;
+    border-left-color: var(--primary-color); /* Hover'da vurgu */
+  }
+
+  .sidebar .closebtn {
+    position: absolute;
+    top: 10px; /* Biraz aşağı aldık */
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+    color: #ccc; /* Close butonu rengi */
+    line-height: 1; /* Dikey hizalama için */
+  }
+   .sidebar .closebtn:hover {
+      color: var(--white-color);
+   }
+
+  .sidebar.open {
+      width: 250px;
+  }
+
+/* --- Main Content --- */
+main {
+    padding: 30px 20px; /* Daha fazla dikey padding */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* --- Başlıklar --- */
+h2 {
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 25px;
+}
+h3 {
+    font-weight: 500;
+    color: var(--dark-color);
+    margin-bottom: 20px;
+}
+h4 {
+    font-weight: 500;
+    color: var(--secondary-color);
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+main > h2 { /* Ana sayfadaki "Masa Durumu" başlığı */
+    color: var(--dark-color);
+    text-align: center;
+    width: 100%;
+    margin-bottom: 30px; /* Altına daha fazla boşluk */
+}
+
+/* --- Masa Alanı --- */
+#masa-alani {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); /* Masalar biraz daha geniş */
+    gap: 20px; /* Daha fazla boşluk */
+    width: 90%; /* Biraz daha geniş alan */
+    max-width: 900px;
+}
+
+.masa {
+    padding: 25px 15px; /* Daha fazla dikey padding */
+    border: none; /* Border kaldırdık, gölge ile ayrım */
+    border-radius: 8px; /* Biraz daha yuvarlak */
+    text-align: center;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1); /* Daha belirgin gölge */
+}
+
+.masa:hover {
+     box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15); /* Hover'da daha belirgin gölge */
+     transform: translateY(-2px); /* Hafif yukarı kalkma efekti */
+}
+
+.masa-bos {
+    background-color: var(--masa-bos-bg);
+    color: var(--masa-text-bos);
+}
+.masa-bos:hover {
+    background-color: var(--masa-bos-hover);
+}
+
+.masa-dolu {
+    background-color: var(--masa-dolu-bg);
+    color: var(--masa-text-dolu);
+    cursor: not-allowed;
+    opacity: 0.85; /* Dolu masayı biraz soluk gösterelim */
+}
+.masa-dolu:hover { /* Dolu masada hover efekti olmasın */
+     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+     transform: none;
+}
+
+
+/* --- Sipariş Modalı --- */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000; /* Sidebar'ın altında olabilir */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.7); /* Arkaplan daha koyu */
+}
+
+.modal-content {
+    background-color: var(--white-color);
+    margin: 8% auto; /* Biraz daha yukarıda */
+    padding: 30px; /* Daha fazla iç boşluk */
+    border: none;
+    width: 90%;
+    max-width: 700px; /* Modal biraz daha geniş */
+    border-radius: 8px;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.close-btn {
+    color: #aaa;
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 32px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: var(--dark-color);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#menu-kategoriler {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    text-align: center; /* Kategori butonlarını ortala */
+}
+
+.kategori-btn {
+    background-color: #eee;
+    color: var(--dark-color);
+    border: 1px solid #ccc;
+    margin: 3px; /* Butonlar arası boşluk */
+}
+.kategori-btn.aktif {
+    background-color: var(--dark-color);
+    color: var(--white-color);
+    border-color: var(--dark-color);
+    font-weight: 600;
+}
+
+#menu-urunler {
+    max-height: 350px; /* Ürün listesi çok uzarsa scroll */
+    overflow-y: auto;
+    padding-right: 10px; /* Scroll bar için boşluk */
+}
+
+.urun-item-yeni {
+    display: flex;
+    align-items: center;
+    padding: 15px 0; /* Dikey boşluk artırıldı */
+    border-bottom: 1px solid #eee;
+}
+.urun-item-yeni:last-child { border-bottom: none; }
+
+.urun-resim {
+    width: 70px; /* Resim biraz daha büyük */
+    height: 70px;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-right: 20px;
+    flex-shrink: 0;
+    background-color: #eee;
+    border: 1px solid #ddd;
+}
+
+.urun-detay-ana {
+    flex-grow: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px; /* Bilgi ve buton arasına boşluk */
+}
+
+.urun-bilgi-yeni {
+     margin-right: 10px;
+     flex-basis: calc(70% - 20px); /* Buton için yer bırakarak genişle */
+ }
+
+ .urun-ad-fiyat {
+    font-weight: 600; /* İsim daha belirgin */
+    display: block;
+    margin-bottom: 5px;
+    color: var(--dark-color);
+}
+
+.urun-aciklama-kalici {
+    font-size: 0.9em;
+    color: var(--secondary-color);
+    margin: 0;
+    flex-basis: 100%;
+    padding-right: 10px;
+}
+
+.sepete-ekle-btn {
+    flex-shrink: 0; /* Butonun küçülmesini engelle */
+    padding: 6px 12px; /* Buton boyutu ayarlandı */
+}
+
+
+#sepet-listesi {
+    list-style: none;
+    padding: 15px; /* Daha fazla padding */
+    max-height: 180px;
+    overflow-y: auto;
+    margin-top: 20px; /* Üstüne daha fazla boşluk */
+    border: 1px solid #eee; /* Düz çizgi */
+    background-color: #fdfdfd; /* Hafif farklı arkaplan */
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+#sepet-listesi li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* Dikeyde hizala */
+    padding: 8px 0; /* Dikey boşluk */
+    font-size: 0.95em;
+    border-bottom: 1px dotted #eee; /* Öğeler arasına nokta çizgi */
+}
+#sepet-listesi li:last-child {
+    border-bottom: none;
+}
+
+.modal-content h4 { /* Sepetiniz başlığı */
+    margin-top: 20px;
+    margin-bottom: 10px;
+    text-align: center;
+    color: var(--primary-color);
+}
+
+.modal-content p strong, #sepet-toplam { /* Toplam Tutar kısmı */
+    font-weight: 600;
+    font-size: 1.1em;
+}
+
+.modal-content .modal-actions { /* Modal butonları için sarmalayıcı */
+    text-align: right;
+    margin-top: 25px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+/* --- Çalışan/Yönetici Ortak Stilleri --- */
+section { /* Kart Yapısı */
+    background-color: var(--white-color);
+    padding: 25px; /* Daha fazla iç boşluk */
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Daha yumuşak gölge */
+    margin-bottom: 30px;
+    width: 100%; /* Section tam genişlik kaplasın */
+    max-width: 1100px; /* Maksimum genişlik (isteğe bağlı) */
+    box-sizing: border-box;
+}
+
+section h2 {
+     margin-top: 0;
+     padding-bottom: 15px;
+     margin-bottom: 25px;
+     border-bottom: 1px solid #eee;
+     color: var(--primary-color);
+     font-weight: 600;
+     font-size: 1.5em; /* Başlık biraz daha büyük */
+}
+
+/* --- Çalışan Paneli Sipariş Listeleri --- */
+.siparis-listesi {
+    list-style: none;
+    padding: 0;
+    margin: 0; /* Section padding'i yeterli */
+}
+.siparis-listesi li {
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid #f0f0f0; /* Daha ince ayırıcı */
+    padding: 15px 10px; /* Daha fazla dikey boşluk */
+    margin-bottom: 0;
+    border-radius: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px; /* Öğeler arası boşluk */
+}
+.siparis-listesi li:last-child { border-bottom: none; }
+
+.siparis-listesi li > span { /* Sipariş ana bilgisi */
+    font-weight: 500;
+    margin-right: auto; /* Butonları sağa iter */
+}
+.siparis-listesi li > div { /* Buton sarmalayıcı */
+    flex-shrink: 0; /* Butonlar küçülmesin */
+}
+.siparis-listesi li button {
+    padding: 6px 12px; /* Buton boyutu */
+    margin-left: 5px;
+    font-size: 0.9em;
+}
+
+.siparis-detay {
+    background-color: var(--light-color); /* Detay alanı arkaplanı */
+    border: 1px solid #eee;
+    padding: 15px; /* Daha fazla boşluk */
+    margin-top: 10px;
+    border-radius: 6px;
+    flex-basis: 100%;
+    font-size: 0.95em;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); /* İç gölge */
+}
+.siparis-detay ul {
+    list-style: none; /* Liste işaretini kaldır */
+    padding-left: 0;
+    margin: 5px 0 10px 0;
+}
+.siparis-detay ul li {
+    padding: 4px 0; /* Liste elemanı boşluğu */
+    border-bottom: 1px dotted #ddd; /* Elemanlar arası ayırıcı */
+}
+.siparis-detay ul li:last-child { border-bottom: none;}
+
+.siparis-detay p { /* Toplam tutar */
+    margin-top: 10px;
+    text-align: right;
+    font-size: 1.05em;
+}
+
+/* --- Çalışan/Yönetici Bilgi Alanı (Sağ Üst) --- */
+#calisan-bilgi, #yonetici-bilgi {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+}
+ #calisan-bilgi span, #yonetici-bilgi span {
+    margin-right: 10px;
+    opacity: 0.9; /* Biraz soluk */
+ }
+ #calisan-bilgi button, #yonetici-bilgi button {
+    padding: 5px 10px;
+    font-size: 0.9em;
+    /* Renkler zaten .btn-danger sınıfından gelecek */
+ }
+
+
+/* --- Yönetici Paneli Özel Stilleri --- */
+
+/* Grid Layout (Kullanıcı/Menü Yönetimi) */
+#kullanici-yonetimi, #menu-yonetimi {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr; /* Form alanı daha dar, liste alanı daha geniş */
+    gap: 30px; /* Aradaki boşluk */
+    align-items: start;
+}
+
+.yonetim-form {
+    /* Formun kendi içeriğinin sola yaslanmasını sağla */
+    text-align: left;
+}
+
+/* Mobil için Tek Sütun */
+@media (max-width: 768px) {
+    #kullanici-yonetimi, #menu-yonetimi {
+        grid-template-columns: 1fr; /* Küçük ekranlarda alt alta */
+    }
+}
+
+
+.yonetim-form h3, .liste-alani h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: var(--secondary-color);
+    font-weight: 500;
+    font-size: 1.2em;
+}
+
+.yonetim-form label {
+    font-weight: 500;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+    color: var(--secondary-color);
+    display: block; /* Tam satırı kapla */
+    margin-top: 15px;
+}
+.yonetim-form label:first-of-type {
+    margin-top: 0;
+}
+
+.yonetim-form input[type="text"],
+.yonetim-form input[type="password"],
+.yonetim-form input[type="number"],
+.yonetim-form select,
+.yonetim-form textarea {
+    width: 100%; /* Tam genişlik */
+    padding: 10px 12px; /* İç boşluk */
+    margin-bottom: 15px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    box-sizing: border-box; /* Padding ve border genişliğe dahil olsun */
+    font-size: 0.95em;
+}
+.yonetim-form textarea {
+    min-height: 60px; /* Minimum yükseklik */
+    resize: vertical; /* Sadece dikeyde boyutlandırma */
+}
+
+.yonetim-form input:focus, .yonetim-form textarea:focus {
+     border-color: var(--primary-color);
+     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+     outline: none;
+ }
+ .yonetim-form input[type="number"] {
+     padding-right: 5px; /* Sayı inputunda oklar için yer */
+ }
+
+.yonetim-form .form-actions { /* Kaydet/Temizle butonları */
+    margin-top: 20px;
+}
+
+.liste-alani ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 400px; /* Liste çok uzarsa scroll */
+    overflow-y: auto;
+    border: 1px solid #eee; /* Liste etrafına çerçeve */
+    border-radius: 5px;
+}
+.liste-alani li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px; /* İç boşluk */
+    border-bottom: 1px solid #eee;
+    background-color: transparent; /* Arkaplanı section alsın */
+    margin-bottom: 0;
+    border-radius: 0;
+}
+.liste-alani li:last-child { border-bottom: none; }
+
+.liste-alani li span {
+    font-weight: 500;
+    margin-right: 10px;
+    flex-grow: 1; /* Metnin kalan boşluğu doldurmasını sağla */
+    overflow: hidden; /* Taşmayı engelle (opsiyonel) */
+    text-overflow: ellipsis; /* Taşarsa ... koy (opsiyonel) */
+    white-space: nowrap; /* Tek satırda tut (opsiyonel) */
+}
+
+.liste-alani button {
+    padding: 4px 8px;
+    font-size: 0.85em;
+    margin-left: 5px;
+    /* Renkler zaten .btn-* sınıflarından gelecek */
+}
+
+#menu-listesi-yonetici h4 { /* Menüde Kategori başlıkları */
+    margin: 20px 0 5px 0;
+    background-color: #eee;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--secondary-color);
+}
+#menu-listesi-yonetici h4:first-of-type { margin-top: 0;}
+
+#menu-listesi-yonetici ul { /* Kategori bazlı listelerde scroll olmasın */
+    max-height: none;
+    overflow-y: visible;
+    border: none; /* Kategori içinde ayrıca çerçeve olmasın */
+}
+
+
+/* --- Raporlama Stilleri --- */
+#satis-raporlama .rapor-filtre {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Öğeler arası boşluk */
+    flex-wrap: wrap; /* Küçük ekranda alt alta */
+}
+#satis-raporlama .rapor-filtre label {
+    margin-right: 5px;
+    font-weight: 500;
+}
+#satis-raporlama .rapor-filtre input[type="date"] {
+    padding: 8px 10px; /* Butonlarla aynı hizada */
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.95em;
+}
+#satis-raporlama .rapor-filtre button {
+    padding: 8px 12px;
+    margin-left: 0; /* Gap kullandığımız için margin'e gerek yok */
+}
+
+#rapor-sonuc {
+    margin-top: 20px;
+    display: grid; /* Rapor sonuçlarını grid ile yerleştirelim */
+    grid-template-columns: 1fr;  /* Listelerin tam genişliği kullanmasını sağla */
+    gap: 30px;
+}
+
+#rapor-sonuc h3, #rapor-sonuc h4 {
+    color: var(--secondary-color);
+    font-weight: 600;
+    margin-bottom: 15px;
+    grid-column: 1 / -1; /* Başlıklar tam satırı kapsasın */
+}
+#rapor-sonuc h3 { font-size: 1.3em;}
+#rapor-sonuc h4 { font-size: 1.1em; color: var(--info-color); }
+
+
+#rapor-siparis-listesi, #rapor-urun-adetleri {
+     list-style: none;
+     padding: 0;
+     margin: 0;
+     border: 1px solid #eee;
+     border-radius: 5px;
+     background-color: var(--white-color);
+     padding: 10px;
+     max-height: 500px;
+     overflow-y: auto;
+     width: 100%; /* Liste kutusunun tam genişliği kaplamasını sağla */
+     box-sizing: border-box; /* Padding genişliğe dahil olsun */
+}
+#rapor-siparis-listesi li, #rapor-urun-adetleri li {
+    padding: 10px 5px; /* Dikey boşluk */
+    border-bottom: 1px dotted #eee;
+}
+#rapor-siparis-listesi li:last-child, #rapor-urun-adetleri li:last-child { border-bottom: none; }
+
+#rapor-siparis-listesi li {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+#rapor-siparis-listesi li span {
+    font-size: 0.95em;
+    flex-grow: 1; /* Metnin boşluğu doldurmasını sağla */
+    margin-right: 10px; /* Butondan ayır */
+}
+
+.rapor-detay-btn {
+    /* Renk zaten .btn-info'dan gelecek */
+    padding: 4px 8px;
+    font-size: 0.85em;
+    margin-left: 10px;
+    flex-shrink: 0;
+}
+.rapor-siparis-detay {
+    background-color: #f0f0f0;
+    border: 1px solid #e0e0e0;
+    padding: 10px 15px;
+    margin-top: 8px;
+    border-radius: 4px;
+    flex-basis: 100%;
+    font-size: 0.9em;
+}
+.rapor-siparis-detay ul { margin: 5px 0; padding-left: 0; list-style: none;}
+.rapor-siparis-detay li { padding: 3px 0; border-bottom: 1px dotted #ccc;}
+.rapor-siparis-detay li:last-child { border-bottom: none;}
+
+#rapor-sonuc .rapor-ozet { /* Toplam Ciro gibi özet bilgiler için */
+    padding: 20px;
+    background-color: var(--dark-color);
+    color: var(--white-color);
+    border-radius: 5px;
+    text-align: center;
+}
+#rapor-sonuc .rapor-ozet strong {
+    font-size: 1.4em;
+    display: block;
+}
+#rapor-sonuc .rapor-ozet span {
+    font-size: 1.8em;
+    font-weight: 700;
+}
+
+
+/* --- Giriş Formları --- */
+#calisan-giris-formu, #yonetici-giris-formu {
+    max-width: 600px; /* Biraz daha geniş */
+    margin: 50px auto; /* Yukarıdan daha fazla boşluk */
+    padding: 50px; /* Daha fazla iç boşluk */
+    border: none; /* Border yerine gölge */
+    border-radius: 8px;
+    background-color: var(--white-color);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+#calisan-giris-formu h2, #yonetici-giris-formu h2 {
+    text-align: center;
+    color: var(--primary-color);
+    margin-top: 0;
+    margin-bottom: 30px;
+}
+#calisan-giris-formu label, #yonetici-giris-formu label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: var(--secondary-color);
+}
+#calisan-giris-formu input[type="text"], #yonetici-giris-formu input[type="text"],
+#calisan-giris-formu input[type="password"], #yonetici-giris-formu input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px; /* Alanlar arası boşluk */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+#calisan-giris-formu input:focus, #yonetici-giris-formu input:focus,
+#calisan-giris-formu input:focus, #yonetici-giris-formu input:focus {
+     border-color: var(--primary-color);
+     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+     outline: none;
+}
+#calisan-giris-formu button, #yonetici-giris-formu button {
+    width: 100%; /* Buton tam genişlik */
+    padding: 12px 15px; /* Buton daha büyük */
+    font-size: 1.05em;
+    margin-bottom: 15px;
+    /* Renk .btn-info'dan gelecek */
+}
+#calisan-giris-hata-mesaji, #yonetici-giris-hata-mesaji {
+    color: var(--danger-color);
+    font-size: 0.9em;
+    margin-top: 10px;
+    text-align: center;
+}
+#calisan-giris-formu p a, #yonetici-giris-formu p a {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    color: var(--secondary-color);
+    text-decoration: none;
+    font-size: 0.9em;
+}
+#calisan-giris-formu p a:hover, #yonetici-giris-formu p a:hover {
+    text-decoration: underline;
+    color: var(--primary-color);
+}
+
+
+/* --- Footer --- */
+footer {
+    margin-top: 50px; /* Daha fazla boşluk */
+    padding: 20px;
+    text-align: center;
+    color: var(--secondary-color); /* Daha yumuşak gri */
+    font-size: 0.9em;
+    background-color: #e9ecef; /* Hafif farklı arkaplan */
+    border-top: 1px solid #dee2e6;
+}

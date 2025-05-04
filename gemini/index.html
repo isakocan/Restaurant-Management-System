@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Restoran - Ana Sayfa</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <button id="hamburger-menu">
+        ☰
+        <!-- Hamburger ikonu -->
+      </button>
+      <h1>Restoranımıza Hoş Geldiniz</h1>
+      <!-- Ana sayfada sağ üstte ekstra bilgi yok -->
+    </header>
+
+    <!-- Sidebar (Kenar Çubuğu) -->
+    <div id="sidebar" class="sidebar">
+      <a href="javascript:void(0)" class="closebtn" id="sidebar-close-btn">×</a>
+      <a href="index.html">Ana Sayfa (Müşteri)</a>
+      <a href="calisan.html">Çalışan Girişi</a>
+      <a href="yonetici.html">Yönetici Girişi</a>
+    </div>
+
+    <main>
+      <h2>Masa Durumu</h2>
+      <div id="masa-alani">
+        <!-- Masalar JavaScript ile buraya eklenecek -->
+      </div>
+
+      <!-- Sipariş Modalı (Başlangıçta Gizli) -->
+      <div id="siparis-modal" class="modal" style="display: none">
+        <div class="modal-content">
+          <span class="close-btn">×</span>
+          <h3>Masa <span id="modal-masa-no"></span> - Menü</h3>
+          <div id="menu-kategoriler">
+            <!-- Kategoriler buraya eklenecek -->
+          </div>
+          <div id="menu-urunler">
+            <!-- Seçilen kategoriye ait ürünler buraya eklenecek -->
+          </div>
+          <h4>Sepetiniz</h4>
+          <ul id="sepet-listesi">
+            <!-- Sepete eklenen ürünler buraya eklenecek -->
+          </ul>
+          <p>Toplam Tutar: <span id="sepet-toplam">0</span> TL</p>
+          <button id="siparis-onayla-btn">Siparişi Onayla</button>
+          <button id="sepet-temizle-btn">Sepeti Temizle</button>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <p>© 2023 Restoran Yönetim Sistemi (Local Versiyon)</p>
+      <!-- Düzeltildi -->
+    </footer>
+
+    <!-- Önce Ortak Script, Sonra Sayfaya Özel Script -->
+    <script src="ortak.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
