@@ -1,0 +1,100 @@
+/* calisan-style.css */
+
+/* --- Çalışan Paneli Sipariş Listeleri --- */
+.siparis-listesi {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.siparis-listesi li {
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid #f0f0f0; /* Ayırıcı çizgi */
+    padding: 15px 10px;
+    margin-bottom: 0;
+    display: flex;            /* Ana flex konteyner */
+    flex-wrap: wrap;          /* Detayların alta kayması için */
+    justify-content: space-between; /* Ana öğeleri (bilgi ve aksiyon) iki uca yasla */
+    align-items: center;      /* Bilgi ve aksiyonları dikeyde ortala */
+    gap: 10px;                /* Sarma olursa veya dikeyde boşluk için */
+}
+.siparis-listesi li:last-child {
+    border-bottom: none;
+}
+
+.siparis-listesi li:hover { /* Hover efekti */
+    background-color: #f8f9fa;
+    transition: background-color 0.2s ease;
+}
+
+/* Sipariş Bilgisi (Sol Taraf) */
+.siparis-listesi li > span {
+    font-weight: 500;
+    flex-grow: 1;         /* Mevcut alanı doldurur */
+    margin-right: 15px;   /* Butonlardan ayırmak için boşluk */
+    display: inline-block; /* VEYA display: block; deneyebilirsin */
+    min-width: 50%;    
+}
+
+/* Butonları Saran Div (Sağ Taraf) */
+.siparis-actions {
+    display: flex;        /* İçindeki butonları yan yana dizer */
+    flex-shrink: 0;       /* Buton grubunun daralmasını engeller */
+    gap: 8px;             /* Butonlar arası boşluk */
+    /* align-items: center; Zaten li'den alıyor olmalı */
+}
+
+/* Aksiyon Butonları */
+.siparis-actions button {
+    padding: 6px 12px;
+    font-size: 0.9em;
+    margin-left: 0; /* Gap kullanıldığı için margin'e gerek yok */
+     /* Renkler style.css'teki .btn-* sınıflarından gelecek */
+}
+
+/* Sipariş Detay Alanı (Altta) */
+.siparis-detay {
+    background-color: var(--light-color);
+    border: 1px solid #eee;
+    padding: 15px;
+    margin-top: 10px; /* Üstündeki elemanlardan ayırmak için */
+    border-radius: 6px;
+    flex-basis: 100%; /* Tam genişlik kaplayarak alta kayar */
+    font-size: 0.95em;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+    /* display: none; JS tarafından yönetilir */
+}
+.siparis-detay ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 5px 0 10px 0;
+}
+.siparis-detay ul li {
+    padding: 4px 0;
+    border-bottom: 1px dotted #ddd;
+}
+.siparis-detay ul li:last-child { border-bottom: none;}
+
+.siparis-detay p { /* Toplam tutar */
+    margin-top: 10px;
+    text-align: right;
+    font-size: 1.05em;
+}
+
+/* "Liste Boş" Mesajı Stili */
+.siparis-listesi li:only-child {
+    text-align: center;
+    padding: 25px 10px;
+    color: var(--secondary-color);
+    font-style: italic;
+    border-bottom: none;
+    background-color: transparent !important;
+    display: block; /* Tekrar block yapalım, flex'i ezsin */
+    font-size: 1.1em;
+}
+.siparis-listesi li:only-child:hover {
+    background-color: transparent;
+}
+
+/* --- BURAYA KADAR OLAN KISMI GÜNCELLE/DEĞİŞTİR --- */

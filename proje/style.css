@@ -1,0 +1,359 @@
+/* style.css (YALNIZCA ORTAK KISIMLAR KALACAK) */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --primary-color: #007bff; /* Ana Mavi */
+    --secondary-color: #6c757d; /* Gri */
+    --success-color: #28a745; /* Yeşil */
+    --danger-color: #dc3545; /* Kırmızı */
+    --warning-color: #ffc107; /* Sarı/Turuncu */
+    --info-color: #17a2b8; /* Açık Mavi */
+    --light-color: #f8f9fa; /* Açık Gri */
+    --dark-color: #343a40; /* Koyu Gri */
+    --masa-bos-bg: #90ee90; /* Açık Yeşil */
+    --masa-dolu-bg: #f08080; /* Açık Kırmızı */
+    --masa-bos-hover: #7fdd7f;
+    --masa-text-dolu: #fff;
+    --masa-text-bos: #333;
+    --white-color: #ffffff;
+}
+
+html { /* YENİ EKLENDİ */
+    height: 100%;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--light-color);
+    color: var(--dark-color);
+    line-height: 1.6;
+    display: flex; /* YENİ EKLENDİ */
+    flex-direction: column; /* YENİ EKLENDİ */
+    min-height: 100vh; /* YENİ EKLENDİ - Sayfa yüksekliğini en az viewport kadar yap */
+}
+
+body.login-page {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('images/arka-plan-login.jpg'); /* <-- RESİM YOLUNU KONTROL ET/DEĞİŞTİR --> */
+    /* Alternatif: Sadece resim isteniyorsa linear-gradient kısmını kaldır: */
+    /* background-image: url('images/arka-plan-login.jpg'); */
+    background-size: cover;
+    background-position: center center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    /* backdrop-filter: blur(2px); İsteğe bağlı: Eğer tüm arka plana hafif blur istersen */
+    /* -webkit-backdrop-filter: blur(2px); */
+}
+
+
+.site-container { /* YENİ EKLENDİ */
+    flex: 1 1 auto; /* Main içeriğinin büyümesini ve footer'ı aşağı itmesini sağlar */
+    display: flex;
+    flex-direction: column;
+}
+
+
+
+/* --- Genel Buton Stilleri --- */
+button, .button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.95em;
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    margin: 2px 4px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+button:hover, .button:hover {
+    opacity: 0.9;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+button:active, .button:active {
+    transform: scale(0.98);
+    box-shadow: none;
+}
+button:disabled, .button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* --- Buton Renk Sınıfları (Tüm sayfalarda kullanılabilir) --- */
+.btn-success, .sepete-ekle-btn, #siparis-onayla-btn, .isleme-al-btn {
+    background-color: var(--success-color);
+    color: var(--white-color);
+}
+.btn-danger, #sepet-temizle-btn, .kullanici-sil-btn, .urun-sil-btn, #calisan-cikis-yap-btn, #yonetici-cikis-yap-btn {
+     background-color: var(--danger-color);
+     color: var(--white-color);
+ }
+.btn-warning, .kullanici-duzenle-btn, .urun-duzenle-btn, .odeme-yapildi-btn {
+     background-color: var(--warning-color);
+     color: var(--dark-color);
+ }
+.btn-info, .detay-goster-btn, .rapor-detay-btn, #yonetici-giris-yap-btn, #calisan-giris-yap-btn, #kullanici-kaydet-btn, #urun-kaydet-btn, #rapor-goster-btn, #tum-rapor-goster-btn, #profil-guncelle-btn {
+     background-color: var(--info-color);
+     color: var(--white-color);
+ }
+ .btn-secondary, #kullanici-form-temizle-btn, #urun-form-temizle-btn {
+     background-color: var(--secondary-color);
+     color: var(--white-color);
+ }
+ .btn-primary {
+     background-color: var(--primary-color);
+     color: var(--white-color);
+ }
+ .btn-light, .sepetten-cikar-btn {
+     background-color: #ddd;
+     color: var(--dark-color);
+     padding: 3px 8px;
+     font-size: 0.85em;
+ }
+ .sepetten-cikar-btn {
+      color: var(--danger-color);
+ }
+
+/* --- Header --- */
+header {
+    background-color: var(--dark-color);
+    color: var(--white-color);
+    padding: 0.8rem 20px; /* Dikey padding'i azalt */
+    display: flex;
+    align-items: center;
+    position: relative;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08); /* Daha yumuşak gölge */
+    height: 60px;
+    box-sizing: border-box;
+}
+
+#header-logo { /* YENİ EKLENDİ */
+    height: 40px; /* Logo yüksekliğini ayarla (genişlik otomatik ayarlanır) */
+    margin-right: 15px; /* Başlık veya hamburgerden ayır */
+    /* Eğer hamburger solda kalacaksa, logonun sırasını HTML'de değiştir veya flex order kullan */
+}
+
+#hamburger-menu {
+    background: none;
+    border: none;
+    color: var(--white-color);
+    font-size: 24px;
+    cursor: pointer;
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#header-center-logo { 
+    height: 45px; 
+    max-width: 150px; 
+}
+
+/* --- Sidebar --- */
+.sidebar {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 1001;
+    top: 0;
+    left: 0;
+    background-color: #222;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+    box-shadow: 3px 0 6px rgba(0,0,0,0.2);
+  }
+
+  .sidebar a {
+    padding: 12px 15px 12px 32px;
+    text-decoration: none;
+    font-size: 18px;
+    color: #ccc;
+    transition: 0.3s;
+    border-left: 3px solid transparent;
+    display: flex; /* İkon ve metni yan yana getirmek için */
+    align-items: center; /* Dikeyde ortala */
+  }
+
+  .sidebar-icon { /* Yeni eklenen ikon sınıfı için stil */
+    margin-right: 10px; /* İkon ile metin arasına boşluk */
+    width: 20px; /* İkonların hizalı durması için sabit genişlik (isteğe bağlı) */
+    text-align: center; /* İkonu kendi alanında ortala */
+}
+
+  .sidebar a:hover {
+    color: var(--white-color);
+    background-color: #333;
+    border-left-color: var(--primary-color);
+  }
+
+  .sidebar .closebtn {
+    position: absolute;
+    top: 10px;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+    color: #ccc;
+    line-height: 1;
+  }
+   .sidebar .closebtn:hover {
+      color: var(--white-color);
+   }
+
+  .sidebar.open {
+      width: 250px;
+  }
+
+/* --- Main Content (Genel) --- */
+main {
+    display: flex; /* main içeriğini ortalamak için */
+    flex-direction: column; /* main içeriğini ortalamak için */
+    align-items: center; /* main içeriğini ortalamak için */
+    justify-content: center; /* main içeriğini ortalamak için */
+    overflow: auto; /* Eğer banner içeriği yine de sığmazsa, banner içinde scroll çıksın */
+    flex: 1 1 auto; /* Main de esnek olsun */
+    padding: 0; /* Ana sayfa için padding olmasın */
+}
+
+/* --- Genel Başlıklar --- */
+h2 { /* Bu genel h2, section içindekiler section stilinde ezilebilir */
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 25px;
+}
+h3 { /* Bu genel h3 */
+    font-weight: 500;
+    color: var(--dark-color);
+    margin-bottom: 20px;
+}
+h4 { /* Bu genel h4 */
+    font-weight: 500;
+    color: var(--secondary-color);
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+/* --- Ortak Çalışan/Yönetici Bilgi Alanı (Sağ Üst) --- */
+#calisan-bilgi, #yonetici-bilgi {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+}
+ #calisan-bilgi span, #yonetici-bilgi span {
+    margin-right: 10px;
+    opacity: 0.9;
+ }
+ /* Çıkış butonları renkleri .btn-danger'dan alacak */
+
+/* --- Ortak Section (Kart) Yapısı (Çalışan ve Yönetici Panelleri İçin) --- */
+section {
+    background-color:#ffffffb4;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    margin-bottom: 30px;
+    width: 100%;
+    max-width: 1100px;
+    box-sizing: border-box;
+}
+
+section h2 { /* Section içindeki h2'ler */
+     margin-top: 0;
+     padding-bottom: 15px;
+     margin-bottom: 25px;
+     border-bottom: 1px solid #9b9b9b;
+     color:#343a40;
+     font-weight: 600;
+     font-size: 1.5em;
+}
+
+
+/* --- Ortak Giriş Formları (Çalışan ve Yönetici Girişi) --- */
+#calisan-giris-formu, #yonetici-giris-formu {
+    max-width: 600px;
+    min-height: 1.2em;
+    margin: auto;
+    padding: 50px 75px 25px 75px;
+    border-radius: 8px;
+    background-color: #ffffffb4;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-sizing: border-box;
+}
+
+
+#calisan-giris-formu h2, #yonetici-giris-formu h2 {
+    text-align: center;
+    color:#343a40;
+    margin-top: 0;
+    margin-bottom: 30px;
+}
+#calisan-giris-formu label, #yonetici-giris-formu label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: var(--secondary-color);
+}
+#calisan-giris-formu input[type="text"], #yonetici-giris-formu input[type="text"],
+#calisan-giris-formu input[type="password"], #yonetici-giris-formu input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+#calisan-giris-formu input:focus, #yonetici-giris-formu input:focus {
+     border-color: var(--primary-color);
+     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+     outline: none;
+}
+#calisan-giris-formu button, #yonetici-giris-formu button { /* Giriş Yap butonları */
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 1.05em;
+    margin-bottom: 15px;
+    /* Renk .btn-info'dan alacaklar */
+}
+#calisan-giris-hata-mesaji, #yonetici-giris-hata-mesaji {
+    color: var(--danger-color);
+    font-size: 0.9em;
+    margin-top: 10px;
+    text-align: center;
+}
+#calisan-giris-formu p a, #yonetici-giris-formu p a {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    color: var(--secondary-color);
+    text-decoration: none;
+    font-size: 0.9em;
+    margin-left: 150px;
+    margin-right: 150px;
+}
+#calisan-giris-formu p a:hover, #yonetici-giris-formu p a:hover {
+    text-decoration: underline;
+    color: var(--primary-color);
+}
+
+/* --- Footer --- */
+footer {
+    text-align: center;
+    color: var(--secondary-color);
+    font-size: 0.9em;
+    background-color: rgb(62, 62, 62);
+    width: 100%; /* Tam genişlik */
+    box-sizing: border-box; /* Padding dahil */
+    flex-shrink: 0; /* YENİ EKLENDİ - Küçülmesini engeller */
+}

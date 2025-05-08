@@ -1,0 +1,277 @@
+/* yonetici-style.css */
+
+/* Grid Layout (Kullanıcı/Menü Yönetimi) */
+#kullanici-yonetimi, #menu-yonetimi {
+    display: grid;
+    grid-template-columns: minmax(320px, 1fr) 1.5fr; /* Form min genişlik, Liste daha geniş */
+    gap: 30px;
+    align-items: start; /* Önemli: Öğeleri dikeyde başa hizala */
+}
+/* Mobil için Tek Sütun */
+@media (max-width: 800px) { /* Biraz daha geniş breakpoint */
+    #kullanici-yonetimi, #menu-yonetimi {
+        grid-template-columns: 1fr;
+    }
+}
+
+.yonetim-form { /* Formun bulunduğu sütun */
+    text-align: left; /* Form kendi içinde sola yaslı */
+}
+
+.yonetim-form h3, .liste-alani h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: var(--secondary-color);
+    font-weight: 500;
+    font-size: 1.2em;
+}
+
+.yonetim-form label {
+    font-weight: 500;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+    color: var(--secondary-color);
+    display: block;
+    margin-top: 15px;
+}
+.yonetim-form label:first-of-type {
+    margin-top: 0;
+}
+
+.yonetim-form input[type="text"],
+.yonetim-form input[type="password"],
+.yonetim-form input[type="number"],
+.yonetim-form select,
+.yonetim-form textarea {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 0.95em;
+}
+.yonetim-form textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+
+.yonetim-form input:focus, .yonetim-form textarea:focus {
+     border-color: var(--primary-color);
+     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+     outline: none;
+ }
+ .yonetim-form input[type="number"] {
+     padding-right: 5px;
+ }
+
+.yonetim-form .form-actions { /* Kaydet/Temizle butonları sarmalayıcı */
+    margin-top: 20px;
+}
+/* Kaydet, Temizle butonları .btn-* sınıflarından renk alacak */
+
+.liste-alani ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 5px;
+}
+.liste-alani li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
+    background-color: transparent;
+    margin-bottom: 0;
+    border-radius: 0;
+}
+
+.liste-alani ul li:only-child { /* Yönetici listeleri */
+    text-align: center;
+    padding: 25px 15px;
+    color: var(--secondary-color);
+    font-style: italic;
+    border-bottom: none;
+    background-color: transparent !important;
+    display: block;
+    font-size: 1.1em;
+}
+.liste-alani ul li:only-child:hover {
+    background-color: transparent;
+}
+
+.liste-alani li:hover {
+    background-color: #f8f9fa;
+    transition: background-color 0.2s ease;
+}
+
+.liste-alani li:last-child { border-bottom: none; }
+
+.liste-alani li span {
+    font-weight: 500;
+    margin-right: 10px;
+    flex-grow: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.liste-alani button { /* Düzenle/Sil butonları */
+    padding: 4px 8px;
+    font-size: 0.85em;
+    margin-left: 5px;
+    /* Renkler .btn-* sınıflarından gelecek */
+}
+
+#menu-listesi-yonetici h4 { /* Menüde Kategori başlıkları */
+    margin: 20px 0 5px 0;
+    background-color: #eee;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--secondary-color);
+}
+#menu-listesi-yonetici h4:first-of-type { margin-top: 0;}
+
+#menu-listesi-yonetici ul {
+    max-height: none;
+    overflow-y: visible;
+    border: none;
+}
+
+
+/* --- Raporlama Stilleri --- */
+#satis-raporlama .rapor-filtre {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+#satis-raporlama .rapor-filtre label {
+    margin-right: 5px;
+    font-weight: 500;
+}
+#satis-raporlama .rapor-filtre input[type="date"] {
+    padding: 8px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.95em;
+}
+#satis-raporlama .rapor-filtre button {
+    padding: 8px 12px;
+    margin-left: 0;
+    /* Renk .btn-info'dan gelecek */
+}
+
+#rapor-sonuc {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr; /* Rapor listesi tam genişlik */
+    gap: 30px;
+}
+
+#rapor-sonuc h3, #rapor-sonuc h4 {
+    color: var(--secondary-color);
+    font-weight: 600;
+    margin-bottom: 15px;
+    /* grid-column: 1 / -1; Artık gereksiz */
+}
+#rapor-sonuc h3 { font-size: 1.3em;}
+#rapor-sonuc h4 { font-size: 1.1em; color: var(--info-color); }
+
+
+#rapor-siparis-listesi, #rapor-urun-adetleri {
+     list-style: none;
+     padding: 0;
+     margin: 0;
+     border: 1px solid #eee;
+     border-radius: 5px;
+     background-color: var(--white-color);
+     padding: 10px;
+     max-height: 500px;
+     overflow-y: auto;
+     width: 100%;
+     box-sizing: border-box;
+}
+#rapor-siparis-listesi li, #rapor-urun-adetleri li {
+    padding: 10px 5px;
+    border-bottom: 1px dotted #eee;
+}
+
+#rapor-siparis-listesi li:only-child, /* Rapor listeleri */
+#rapor-urun-adetleri li:only-child {
+    text-align: center;
+    padding: 25px 5px;
+    color: var(--secondary-color);
+    font-style: italic;
+    border-bottom: none;
+    display: block;
+    font-size: 1.1em;
+}
+#rapor-siparis-listesi li:only-child:hover,
+#rapor-urun-adetleri li:only-child:hover {
+    background-color: transparent;
+}
+
+#rapor-siparis-listesi li:hover,
+#rapor-urun-adetleri li:hover {
+    background-color: #f8f9fa;
+     /* transition zaten li için tanımlı olabilir, gerekirse ekle */
+}
+
+#rapor-siparis-listesi li:last-child, #rapor-urun-adetleri li:last-child { border-bottom: none; }
+
+#rapor-siparis-listesi li {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+#rapor-siparis-listesi li span {
+    font-size: 0.95em;
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+/* .rapor-detay-btn .btn-info'dan renk alacak */
+
+.rapor-siparis-detay {
+    background-color: #f0f0f0;
+    border: 1px solid #e0e0e0;
+    padding: 10px 15px;
+    margin-top: 8px;
+    border-radius: 4px;
+    flex-basis: 100%;
+    font-size: 0.9em;
+}
+.rapor-siparis-detay ul { margin: 5px 0; padding-left: 0; list-style: none;}
+.rapor-siparis-detay li { padding: 3px 0; border-bottom: 1px dotted #ccc;}
+.rapor-siparis-detay li:last-child { border-bottom: none;}
+
+#rapor-sonuc .rapor-ozet {
+    padding: 20px;
+    background-color: var(--dark-color);
+    color: var(--white-color);
+    border-radius: 5px;
+    text-align: center;
+    /* Bu kutunun grid içinde nasıl yerleşeceğine karar vermeniz gerekebilir.
+       Eğer ayrı bir alansa, HTML'de öyle gruplayın veya grid-area kullanın.
+       Şimdilik varsayılan akışta kalacak. */
+}
+#rapor-sonuc .rapor-ozet strong {
+    font-size: 1.4em;
+    display: block;
+}
+#rapor-sonuc .rapor-ozet span {
+    font-size: 1.8em;
+    font-weight: 700;
+}

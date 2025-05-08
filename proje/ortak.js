@@ -238,4 +238,9 @@ document.addEventListener('DOMContentLoaded', () => {
         closeNav();
       }
     });
+
+    const yearSpan = document.getElementById('current-year');
+    if (yearSpan) {
+        yearSpan.textContent = new Date().getFullYear();
+    }
 });

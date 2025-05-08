@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yönetici Paneli</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <!-- Ortak stiller -->
+    <link rel="stylesheet" href="yonetici-style.css" />
+    <!-- Yöneticiye özel stiller -->
+  </head>
+  <body class="login-page">
+    <div class="site-container">
+      <!-- YENİ SARMALAYICI -->
+      <header>
+        <button id="hamburger-menu">
+          ☰
+          <!-- Hamburger ikonu -->
+        </button>
+        <img
+          src="images/Restaurant-logo.png"
+          alt="Restoran Logosu"
+          id="header-center-logo"
+        />
+        <!-- Yönetici Bilgi Div'i -->
+        <div id="yonetici-bilgi">
+          <!-- float kaldırıldı, CSS ile ayarlanacak -->
+          <span>Hoş geldin, <span id="yonetici-adi"></span>!</span>
+          <button id="yonetici-cikis-yap-btn">Çıkış Yap</button>
+        </div>
+      </header>
+
+      <!-- Sidebar -->
+      <div id="sidebar" class="sidebar">
+        <a href="javascript:void(0)" class="closebtn" id="sidebar-close-btn"
+          >×</a
+        >
+        <a href="index.html"
+          ><i class="fas fa-home sidebar-icon"></i> Ana Sayfa</a
+        >
+        <a href="calisan.html"
+          ><i class="fas fa-concierge-bell sidebar-icon"></i> Çalışan Girişi</a
+        >
+        <a href="yonetici.html"
+          ><i class="fas fa-user-shield sidebar-icon"></i> Yönetici Girişi</a
+        >
+      </div>
+
+      <main>
+        <!-- Giriş Formu -->
+        <div id="yonetici-giris-formu">
+          <h2>Yönetici Girişi</h2>
+          <label for="yonetici-kullanici-adi">Kullanıcı Adı:</label>
+          <input type="text" id="yonetici-kullanici-adi" required />
+          <br />
+          <label for="yonetici-sifre">Şifre:</label>
+          <input type="password" id="yonetici-sifre" required />
+          <br />
+          <button id="yonetici-giris-yap-btn">Giriş Yap</button>
+          <p id="yonetici-giris-hata-mesaji"></p>
+          <p>
+            <a href="index.html">Ana Sayfaya Dön</a>
+          </p>
+        </div>
+
+        <!-- Yönetim Alanları -->
+        <div id="yonetim-icerik">
+          <!-- Profil Ayarları -->
+          <section id="yonetici-profil-guncelleme">
+            <h2>Profil Ayarları</h2>
+            <div class="yonetim-form">
+              <!-- Ortalamak için margin: auto -->
+              <h3>Kullanıcı Adı / Şifre Değiştir</h3>
+              <label for="guncel-sifre">Mevcut Şifreniz:</label>
+              <input
+                type="password"
+                id="guncel-sifre"
+                required
+                placeholder="Değişiklik için mevcut şifre gerekli"
+              />
+              <label for="guncel-yeni-kullanici-adi">Yeni Kullanıcı Adı:</label>
+              <input type="text" id="guncel-yeni-kullanici-adi" required />
+              <label for="guncel-yeni-sifre">Yeni Şifre:</label>
+              <input
+                type="password"
+                id="guncel-yeni-sifre"
+                placeholder="Değiştirmek istemiyorsanız boş bırakın"
+              />
+              <button id="profil-guncelle-btn">Profilimi Güncelle</button>
+              <p id="profil-guncelle-mesaj"></p>
+            </div>
+          </section>
+
+          <!-- Garson Yönetimi -->
+          <section id="kullanici-yonetimi">
+            <h2>Garson Yönetimi</h2>
+            <div class="yonetim-form">
+              <h3>Yeni Garson Ekle / Düzenle</h3>
+              <input type="hidden" id="kullanici-edit-id" />
+              <label for="yeni-kullanici-adi">Kullanıcı Adı:</label>
+              <input type="text" id="yeni-kullanici-adi" required />
+              <label for="yeni-sifre">Şifre:</label>
+              <input type="password" id="yeni-sifre" required />
+              <button id="kullanici-kaydet-btn">Kaydet</button>
+              <button id="kullanici-form-temizle-btn" type="button">
+                Temizle / Yeni
+              </button>
+            </div>
+            <div class="liste-alani">
+              <h3>Mevcut Garsonlar</h3>
+              <ul id="kullanici-listesi">
+                <!-- Garsonlar buraya listelenecek -->
+              </ul>
+            </div>
+          </section>
+
+          <!-- Menü Yönetimi -->
+          <section id="menu-yonetimi">
+            <h2>Menü Yönetimi</h2>
+            <div class="yonetim-form">
+              <h3>Yeni Ürün Ekle / Düzenle</h3>
+              <input type="hidden" id="urun-edit-id" />
+              <label for="urun-adi">Ürün Adı:</label>
+              <input type="text" id="urun-adi" required />
+              <label for="urun-kategori">Kategori:</label>
+              <input type="text" id="urun-kategori" required />
+              <label for="urun-fiyat">Fiyat (TL):</label>
+              <input
+                type="number"
+                id="urun-fiyat"
+                required
+                min="0"
+                step="0.50"
+              />
+              <label for="urun-aciklama">Açıklama:</label>
+              <textarea id="urun-aciklama" rows="2"></textarea>
+              <label for="urun-foto"
+                >Fotoğraf Yolu (örn: images/cay.jpg):</label
+              >
+              <input type="text" id="urun-foto" />
+              <button id="urun-kaydet-btn">Kaydet</button>
+              <button id="urun-form-temizle-btn" type="button">
+                Temizle / Yeni
+              </button>
+            </div>
+            <div class="liste-alani">
+              <h3>Mevcut Menü Öğeleri</h3>
+              <div id="menu-listesi-yonetici">
+                <!-- Menü öğeleri kategori bazlı buraya listelenecek -->
+              </div>
+            </div>
+          </section>
+
+          <!-- Satış Raporlama -->
+          <section id="satis-raporlama">
+            <h2>Satış Raporları</h2>
+            <div class="rapor-filtre">
+              <label for="rapor-tarih">Tarih Seçin:</label>
+              <input type="date" id="rapor-tarih" />
+              <button id="rapor-goster-btn">Raporu Göster</button>
+              <button id="tum-rapor-goster-btn">Tüm Zamanları Göster</button>
+            </div>
+            <div id="rapor-sonuc">
+              <h3><span id="rapor-tarih-baslik"></span> Satış Raporu</h3>
+              <h4>Ödenen Siparişler</h4>
+              <ul id="rapor-siparis-listesi">
+                <!-- Ödenen siparişler buraya listelenecek -->
+              </ul>
+              <h4>Günlük Özet</h4>
+              <p>
+                <strong
+                  >Toplam Ciro: <span id="rapor-toplam-ciro">0</span> TL</strong
+                >
+              </p>
+              <h4>Satılan Ürün Adetleri</h4>
+              <ul id="rapor-urun-adetleri">
+                <!-- Satılan ürün adetleri buraya listelenecek -->
+              </ul>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <footer>
+        <!-- FOOTER ARTIK BU SARMALAYICININ İÇİNDE VE MAIN'DEN SONRA -->
+        <p>© <span id="current-year"></span> Restoran Yönetim Sistemi</p>
+      </footer>
+    </div>
+    <!-- site-container sonu -->
+
+    <!-- Firebase SDK (Uyumluluk Sürümü - Manuel Eklendi) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <script>
+      // Your web app's Firebase configuration (BURAYA KENDİ firebaseConfig BİLGİLERİNİ YAPIŞTIR)
+      const firebaseConfig = {
+        apiKey: "AIzaSyDsilQeRnekc7hGwNS-2z7_0xaVtGQKOAo", // Senin kopyaladığın değerler
+        authDomain: "restaurant-managament-system.firebaseapp.com", // Senin kopyaladığın değerler
+        projectId: "restaurant-managament-system", // Senin kopyaladığın değerler
+        storageBucket: "restaurant-managament-system.firebasestorage.app", // Senin kopyaladığın değerler
+        messagingSenderId: "344716329323", // Senin kopyaladığın değerler
+        appId: "1:344716329323:web:d9025e0b79ba9d41838c2e", // Senin kopyaladığın değerler
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore(); // Firestore referansı
+      const auth = firebase.auth(); // Auth referansı
+    </script>
+    <!-- Firebase Kodu Sonu -->
+    <script src="ortak.js"></script>
+    <script src="yonetici.js"></script>
+  </body>
+</html>

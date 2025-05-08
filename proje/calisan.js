@@ -95,12 +95,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const li = document.createElement('li');
             li.innerHTML = `
             <span>${siparisNo}. Sipariş - ${masaAdi} - ${siparisZamani}</span>
-            <div>
-               <button class="detay-goster-btn" data-id="${siparis.id}">Detaylar</button>
-               <button class="isleme-al-btn" data-id="${siparis.id}">İşleme Al</button>
+            <div class="siparis-actions"> 
+               <button class="detay-goster-btn btn-info" data-id="${siparis.id}">Detaylar</button> 
+               <button class="isleme-al-btn btn-success" data-id="${siparis.id}">İşleme Al</button>  
             </div>
             <div class="siparis-detay" data-id="${siparis.id}" style="display: none;">
-                
+               
             </div>
         `;
             bekleyenListesiUl.appendChild(li);
@@ -149,17 +149,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const siparisNo = index + 1; // 1'den başlayan sıra numarası <<<--- DEĞİŞİKLİK
 
             const li = document.createElement('li');
-            // siparis.id yerine siparisNo kullanıldı: <<<--- DEĞİŞİKLİK
             li.innerHTML = `
-                <span>${siparisNo}. Sipariş - ${masaAdi} - ${siparisZamani}</span>
-                <div>
-                   <button class="detay-goster-btn" data-id="${siparis.id}">Detaylar</button>
-                   <button class="odeme-yapildi-btn" data-id="${siparis.id}">Ödeme Yapıldı</button>
-                </div>
-                <div class="siparis-detay" data-id="${siparis.id}" style="display: none;">
-                    <!-- Detaylar toggleDetay fonksiyonunda yüklenecek -->
-                </div>
-            `;
+            <span>${siparisNo}. Sipariş - ${masaAdi} - ${siparisZamani}</span>
+            <div class="siparis-actions"> 
+               <button class="detay-goster-btn btn-info" data-id="${siparis.id}">Detaylar</button> 
+               <button class="odeme-yapildi-btn btn-warning" data-id="${siparis.id}">Ödeme Yapıldı</button> 
+            </div>
+            <div class="siparis-detay" data-id="${siparis.id}" style="display: none;">
+                
+            </div>
+        `;
             alinanListesiUl.appendChild(li);
         });
         addAlinanSiparisListeners();
