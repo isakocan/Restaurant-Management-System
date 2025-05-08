@@ -1,8 +1,20 @@
 // app.js (TAMAMI - Güncellenmiş Hali)
+function toLowerTurkce(str) {
+    const harfler = {
+        'İ': 'i', 'I': 'ı', 'Ş': 'ş', 'Ğ': 'ğ',
+        'Ü': 'ü', 'Ö': 'ö', 'Ç': 'ç'
+    };
+    return str
+        .split('')
+        .map(k => harfler[k] || k)
+        .join('')
+        .toLowerCase();
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     baslangicVerileriniYukle();
 
+    const menuAraInput = document.getElementById('menu-ara-input');
     const masaAlani = document.getElementById('masa-alani');
     const siparisModal = document.getElementById('siparis-modal');
     const modalMasaNo = document.getElementById('modal-masa-no');
@@ -62,11 +74,12 @@ document.addEventListener('DOMContentLoaded', () => {
             kategoriBtn.classList.add('kategori-btn');
             kategoriBtn.addEventListener('click', () => kategoriSecildi(kategori));
             menuKategorilerDiv.appendChild(kategoriBtn);
-            if (index === 0) {
-                kategoriSecildi(kategori);
-                kategoriBtn.classList.add('aktif');
-            }
+            
         });
+        setTimeout(() => {
+            const ilkKategoriBtn = menuKategorilerDiv.querySelector('.kategori-btn');
+            if (ilkKategoriBtn) ilkKategoriBtn.click();
+        }, 0); // 0 ms bile yetiyor, DOM boşluk yakalıyor
     }
 
     function kategoriSecildi(kategoriAdi) {
@@ -77,7 +90,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         const menu = veriOku('menu');
-        const urunler = menu.filter(urun => urun.category === kategoriAdi);
+        let urunler = menu.filter(urun => urun.category === kategoriAdi);
+
+       // Arama filtreleme uygulanacak
+         const aramaKelimesi = menuAraInput ? menuAraInput.value.toLowerCase() : '';
+         if (aramaKelimesi) {
+             urunler = urunler.filter(urun =>
+            toLowerTurkce(urun.name).includes(aramaKelimesi)
+        );
+    }
         renderUrunler(urunler);
     }
 
@@ -155,16 +176,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (sepet[urunId] <= 0) delete sepet[urunId];
         }
         renderSepet();
+        showToast("➖ Ürün sepetten çıkarıldı.", "info");
     }
 
     function sepetiTemizle() {
         sepet = {};
         renderSepet();
+        showToast("🗑️ Sepet temizlendi.", "info");
     }
 
     function siparisOnayla() {
         if (Object.keys(sepet).length === 0 || seciliMasaId === null) {
-            alert("Sepetiniz boş veya bir masa seçilmedi!");
+            showToast("⚠️ Sepetiniz boş veya masa seçilmedi!", "warning");
             return;
         }
         const siparisler = veriOku('siparisler', []);
@@ -202,7 +225,8 @@ document.addEventListener('DOMContentLoaded', () => {
             renderMasalar();
         }
 
-        alert(`Masa ${modalMasaNo ? modalMasaNo.textContent : seciliMasaId} için siparişiniz alındı! Toplam: ${siparisTotal.toFixed(2)} TL`);
+        showToast(`✔️ ${modalMasaNo ? modalMasaNo.textContent : seciliMasaId} için sipariş alındı!`, "success");
+
         sepet = {};
         seciliMasaId = null;
         kapatModal();
@@ -222,6 +246,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (siparisOnaylaBtn) siparisOnaylaBtn.addEventListener('click', siparisOnayla);
     if (sepetTemizleBtn) sepetTemizleBtn.addEventListener('click', sepetiTemizle);
     window.addEventListener('click', (event) => { if (event.target === siparisModal) kapatModal(); });
+
+    if (menuAraInput) {
+        menuAraInput.addEventListener('input', () => {
+            const aktifKategoriBtn = document.querySelector('.kategori-btn.aktif');
+            if (aktifKategoriBtn) {
+                kategoriSecildi(aktifKategoriBtn.textContent);
+            }
+        });
+    }
 
     // --- Sayfa İlk Yüklendiğinde ---
     renderMasalar();

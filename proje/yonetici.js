@@ -100,6 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
         menuyuYukleYonetici();
         if(raporTarihInput) raporTarihInput.valueAsDate = new Date(); // Varsayılan tarih bugun
         raporGoster(); // Başlangıçta bugünün raporunu göster
+        showToast("✔️ Yönetici girişi başarılı!", "success");
     }
 
     function yoneticiGosterHata(mesaj) {
@@ -164,6 +165,8 @@ document.addEventListener('DOMContentLoaded', () => {
         veriYaz('kullanicilar', kullanicilar);
         if(yoneticiAdiSpan) yoneticiAdiSpan.textContent = aktifYonetici.username;
         profilGuncelleMesajP.textContent = "Profil bilgileriniz başarıyla güncellendi.";
+        showToast("✔️ Profil başarıyla güncellendi.", "success");
+
         profilGuncelleMesajP.style.color = 'green';
 
         guncelSifreInput.value = '';
@@ -243,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const password = yeniSifreInput.value;
 
         if (!username || (!id && !password)) {
-            alert('Kullanıcı adı ve şifre (yeni garson için) boş bırakılamaz.');
+            showToast('⚠️ Kullanıcı adı ve şifre (yeni garson için) boş bırakılamaz.', 'warning');
             return;
         }
 
@@ -252,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Kullanıcı adı başka bir kullanıcıda var mı kontrolü (kendisi hariç)
      const isUsernameTaken = kullanicilar.some(k => k.username.toLowerCase() === username.toLowerCase() && k.id !== id);
      if (isUsernameTaken) {
-         alert(`"${username}" kullanıcı adı başka bir garson tarafından kullanılıyor!`);
+        showToast(`❌ "${username}" kullanıcı adı başka bir garson tarafından kullanılıyor!`, 'error');
          return;
      }
 
@@ -273,6 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
         veriYaz('kullanicilar', kullanicilar);
         kullanicilariYukle();
         kullaniciFormunuTemizle();
+        showToast("✔️ Garson kaydedildi!", "success");
     }
 
     function kullaniciSil(event) {
@@ -284,6 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
          kullanicilar = kullanicilar.filter(k => !(k.id === kullaniciId && k.role === 'Garson')); // Sadece o ID'li garsonu sil
          veriYaz('kullanicilar', kullanicilar);
          kullanicilariYukle();
+         showToast("✔️ Garson silindi.", "success");
          // Silinen kullanıcı formdaysa temizle
          if (kullaniciEditIdInput && parseInt(kullaniciEditIdInput.value) === kullaniciId) {
              kullaniciFormunuTemizle();
@@ -440,7 +445,7 @@ function menuyuYukleYonetici() {
             .forEach(urun => {
                 const li = document.createElement('li');
                 li.innerHTML = `
-                    <span>${urun.name} (${urun.price.toFixed(2)} TL) ${urun.description ? '- ' + urun.description : ''} ${urun.photo ? '(Resimli)' : ''}</span>
+                    <span>${urun.name} (${urun.price.toFixed(2)} TL) ${urun.description ? '- ' + urun.description : ''} </span>
                     <div>
                         <button class="urun-duzenle-btn" data-id="${urun.id}">Düzenle</button>
                         <button class="urun-sil-btn" data-id="${urun.id}">Sil</button>
@@ -492,13 +497,13 @@ function urunKaydet() {
     const photo = urunFotoInput.value.trim();
 
     if (!name || !category || !priceString) {
-        alert('Ürün adı, kategori ve fiyat boş bırakılamaz.');
+        showToast('⚠️ Ürün adı, kategori ve fiyat boş bırakılamaz.', 'warning');
         return;
     }
 
     const price = parseFloat(priceString);
     if (isNaN(price) || price < 0) {
-        alert('Lütfen geçerli bir fiyat girin (0 veya daha büyük).');
+        showToast('⚠️ Geçerli bir fiyat girin (0 veya daha büyük).', 'warning');
         return;
     }
 
@@ -508,21 +513,26 @@ function urunKaydet() {
         const index = menu.findIndex(u => u.id === id);
         if (index !== -1) {
             menu[index] = { ...menu[index], name, category, price, description, photo }; // Tüm alanları güncelle
+            showToast("✔️ Ürün başarıyla güncellendi.", "success");
         }
     } else { // Yeni Ekleme
         // Aynı isimde ürün var mı kontrolü (opsiyonel)
         if (menu.some(u => u.name.toLowerCase() === name.toLowerCase())) {
-             alert(`"${name}" isimli ürün zaten mevcut!`);
+             showToast(`❌ "${name}" isimli ürün zaten var!`, "error");
              return;
         }
         const yeniUrun = { id: yeniIdUret(), name, category, price, description, photo };
         menu.push(yeniUrun);
+        showToast("✔️ Yeni ürün başarıyla eklendi.", "success");
     }
+    
 
     veriYaz('menu', menu);
     menuyuYukleYonetici(); // Listeyi yenile
     urunFormunuTemizle(); // Formu temizle
+
 }
+
 
 function urunSil(event) {
      const urunId = parseInt(event.target.dataset.id);
@@ -538,7 +548,7 @@ function urunSil(event) {
      let newMenu = menu.filter(u => u.id !== urunId);
      veriYaz('menu', newMenu);
      menuyuYukleYonetici(); // Listeyi yenile
-
+     showToast("✔️ Ürün silindi.", "success");
      // Silinen ürün formdaysa temizle
      if (urunEditIdInput && parseInt(urunEditIdInput.value) === urunId) {
          urunFormunuTemizle();

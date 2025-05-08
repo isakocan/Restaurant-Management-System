@@ -21,11 +21,15 @@
           ☰
           <!-- Hamburger ikonu -->
         </button>
-        <img
-          src="images/Restaurant-logo.png"
-          alt="Restoran Logosu"
-          id="header-center-logo"
-        />
+        <div id="logo">
+          <a href="index.html">
+            <img
+              src="images/Restaurant-logo.png"
+              alt="Restoran Logosu"
+              id="header-center-logo"
+            />
+          </a>   
+        </div>
         <!-- Çalışan Bilgi Div'i (Giriş yapınca görünür) -->
         <div id="calisan-bilgi">
           <!-- float:right kaldırıldı, CSS ile ayarlanacak -->
@@ -85,6 +89,7 @@
         <!-- FOOTER ARTIK BU SARMALAYICININ İÇİNDE VE MAIN'DEN SONRA -->
         <p>© <span id="current-year"></span> Restoran Yönetim Sistemi</p>
       </footer>
+      <div id="toast-container"></div>
     </div>
 
     <!-- Firebase SDK (Uyumluluk Sürümü - Manuel Eklendi) -->
@@ -111,5 +116,7 @@
     <!-- Firebase Kodu Sonu -->
     <script src="ortak.js"></script>
     <script src="calisan.js"></script>
+    <!-- TOAST BİLDİRİM ALANI -->
+
   </body>
 </html>

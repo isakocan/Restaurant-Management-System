@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         renderBekleyenSiparisler();
         renderAlinanSiparisler();
+        showToast("✔️ Giriş başarılı. Hoş geldin!", "success");
     }
 
     function calisanCikisYap() {
@@ -190,6 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
             veriYaz('siparisler', siparisler);
             renderBekleyenSiparisler();
             renderAlinanSiparisler();
+            showToast("✔️ Sipariş başarıyla işleme alındı!", "success");
         } else {
             alert("Sipariş bulunamadı veya başka bir garson tarafından alınmış olabilir.");
             renderBekleyenSiparisler();
@@ -221,6 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 veriYaz('masalar', masalar);
             }
             renderAlinanSiparisler();
+            showToast("✔️ Sipariş ödendi ve masa boşaltıldı.", "success");
         } else {
             alert("Ödenecek sipariş bulunamadı veya durumu değişmiş olabilir.");
             renderAlinanSiparisler();
