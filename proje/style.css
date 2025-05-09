@@ -436,5 +436,17 @@ footer {
     color: white;
     font-weight: bold;
 }
+.masa-pasif {
+    background-color: #cccccc; /* Gri bir renk */
+    color: #666666;
+    cursor: not-allowed !important; /* Tıklanamaz olduğunu belirt */
+    opacity: 0.7;
+    border: 2px dashed #aaaaaa; /* Kullanım dışı olduğunu belirten bir kenarlık */
+}
 
-
+.masa-pasif:hover {
+    /* Hover efektlerini kaldır veya azalt */
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    transform: none;
+    background-color: #cccccc; /* Rengi değiştirme */
+}

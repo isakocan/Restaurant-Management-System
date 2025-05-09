@@ -298,4 +298,32 @@
   @keyframes fadeOut {
     to   { opacity: 0; transform: translateX(100%); }
   }
-  
+  #toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.toast {
+    background-color: #323232;
+    color: #fff;
+    padding: 12px 20px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    opacity: 0.95;
+    transition: all 0.3s ease-in-out;
+    font-family: sans-serif;
+}
+
+.toast.success {
+    background-color: #28a745;
+}
+.toast.error {
+    background-color: #dc3545;
+}
+.toast.info {
+    background-color: #17a2b8;
+}
+

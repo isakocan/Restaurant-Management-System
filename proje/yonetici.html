@@ -58,7 +58,7 @@
         <!-- Giriş Formu -->
         <div id="yonetici-giris-formu">
           <h2>Yönetici Girişi</h2>
-          <label for="yonetici-kullanici-adi">Kullanıcı Adı:</label>
+          <label for="yonetici-kullanici-adi">E-posta Adresi:</label>
           <input type="text" id="yonetici-kullanici-adi" required />
           <br />
           <label for="yonetici-sifre">Şifre:</label>
@@ -103,16 +103,30 @@
           <section id="kullanici-yonetimi">
             <h2>Garson Yönetimi</h2>
             <div class="yonetim-form">
-              <h3>Yeni Garson Ekle / Düzenle</h3>
               <input type="hidden" id="kullanici-edit-id" />
-              <label for="yeni-kullanici-adi">Kullanıcı Adı:</label>
+
+              <label for="yeni-kullanici-adi">Kullanıcı Adı (Görünecek Ad):</label>
               <input type="text" id="yeni-kullanici-adi" required />
+
+              <label for="yeni-kullanici-email">E-posta Adresi (Giriş için):</label>
+              <input type="text" id="yeni-kullanici-email" required />
+
               <label for="yeni-sifre">Şifre:</label>
-              <input type="password" id="yeni-sifre" required />
-              <button id="kullanici-kaydet-btn">Kaydet</button>
-              <button id="kullanici-form-temizle-btn" type="button">
-                Temizle / Yeni
-              </button>
+              
+              <div style="display: flex; align-items: center">
+                <input type="password" id="yeni-sifre" required style="flex-grow: 1" />
+                <button
+                  type="button"
+                  id="toggle-yeni-sifre-gorunurluk"
+                  style="margin-left: 5px; padding: 5px"
+                >
+                  Göster
+                </button>
+              </div>
+              <div class="form-actions">
+                 <button id="kullanici-kaydet-btn" class="btn-info">Kaydet</button>
+                <button id="kullanici-form-temizle-btn" class="btn-secondary" type="button">Temizle / Yeni</button>
+              </div>
             </div>
             <div class="liste-alani">
               <h3>Mevcut Garsonlar</h3>
@@ -121,6 +135,36 @@
               </ul>
             </div>
           </section>
+
+          <section id="masa-yonetimi">
+            <h2>Masa Yönetimi</h2>
+            <div class="yonetim-form">
+              <h3>Yeni Masa Ekle / Düzenle</h3>
+              <input type="hidden" id="masa-edit-id" />
+
+              <label for="masa-adi">Masa Adı:</label>
+              <input type="text" id="masa-adi" required />
+
+              <label for="masa-aktif-mi">Kullanımda Mı?</label>
+              <select id="masa-aktif-mi">
+                <option value="true" selected>Evet (Aktif)</option>
+                <option value="false">Hayır (Pasif / Kullanım Dışı)</option>
+              </select>
+
+              <div class="form-actions">
+                <button id="masa-kaydet-btn" class="btn-info">Kaydet</button>
+                <button id="masa-form-temizle-btn" class="btn-secondary" type="button">
+                  Temizle / Yeni
+                </button>
+              </div>
+            </div>
+
+            <div class="liste-alani">
+              <h3>Mevcut Masalar</h3>
+              <ul id="masa-listesi-yonetici"></ul>
+            </div>
+          </section>
+
 
           <!-- Menü Yönetimi -->
           <section id="menu-yonetimi">
@@ -220,6 +264,8 @@
     <!-- Firebase Kodu Sonu -->
     <script src="ortak.js"></script>
     <script src="yonetici.js"></script>
-    <div id="toast-container"></div>  
+    <div id="toast-container"></div> 
+    <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+ 
   </body>
 </html>
