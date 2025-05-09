@@ -14,6 +14,66 @@ document.addEventListener('DOMContentLoaded', () => {
     const bekleyenListesiUl = document.getElementById('bekleyen-siparisler-listesi');
     const alinanListesiUl = document.getElementById('alinan-siparisler-listesi');
 
+    // --- Garson Şifre Güncelleme ve Hesap Silme ---
+    const garsonSifreInput = document.getElementById('garson-yeni-sifre');
+    const garsonSifreGuncelleBtn = document.getElementById('garson-sifre-guncelle-btn');
+    const garsonHesapSilBtn = document.getElementById('garson-hesap-sil-btn');
+    const garsonGuncelleBtn = document.getElementById("garson-guncelle-btn");
+const mevcutSifreInput = document.getElementById("garson-mevcut-sifre");
+const yeniKullaniciAdiInput = document.getElementById("garson-yeni-kullanici-adi");
+const yeniSifreInput = document.getElementById("garson-yeni-sifre");
+const garsonMesajP = document.getElementById("garson-profil-mesaj");
+
+if (garsonGuncelleBtn) {
+  garsonGuncelleBtn.addEventListener("click", async () => {
+    const mevcutSifre = mevcutSifreInput.value;
+    const yeniKullaniciAdi = yeniKullaniciAdiInput.value.trim();
+    const yeniSifre = yeniSifreInput.value;
+
+    if (!mevcutSifre || !yeniKullaniciAdi) {
+      showToast("Mevcut şifre ve yeni kullanıcı adı zorunludur.", "error");
+      return;
+    }
+
+    const user = firebase.auth().currentUser;
+    const credential = firebase.auth.EmailAuthProvider.credential(user.email, mevcutSifre);
+
+    try {
+      await user.reauthenticateWithCredential(credential);
+      if (yeniSifre) await user.updatePassword(yeniSifre);
+      await db.collection("users").doc(user.uid).update({ username: yeniKullaniciAdi });
+      showToast("Profil başarıyla güncellendi.", "success");
+      mevcutSifreInput.value = "";
+    yeniSifreInput.value = "";
+    
+
+    } catch (error) {
+      console.error("Profil güncelleme hatası:", error);
+  if (error.code === "auth/wrong-password") {
+    showToast("Mevcut şifre hatalı.", "error");
+  } else {
+    showToast("Profil güncellenemedi.", "error");
+  }
+    }
+  });
+}
+
+
+    
+
+    if (garsonHesapSilBtn) {
+  garsonHesapSilBtn.addEventListener("click", async () => {
+    if (!confirm("Hesabınızı silmek istediğinize emin misiniz?")) return;
+    const user = firebase.auth().currentUser;
+    await db.collection("users").doc(user.uid).delete();
+    await user.delete();
+    showToast("Hesabınız silindi. Güle güle...", "success");
+    setTimeout(() => location.href = "index.html", 3000);
+  });
+}
+
+    
+
     // --- Uygulama Durumu ---
     let aktifCalisanAuth = null;
     let aktifCalisanData = null; // Firestore'dan gelen kullanıcı verisini (rol, username) saklamak için
@@ -41,10 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     function gosterHata(mesaj) {
-        if (hataMesajiP) {
-            hataMesajiP.textContent = mesaj;
-            hataMesajiP.style.display = 'block';
-        }
+        showToast(mesaj, "error");
     }
 
     function girisBasariliArayuzunuGoster() {
@@ -171,7 +228,8 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("Firebase'den çıkış yapıldı.");
         } catch (error) {
             console.error("Firebase çıkış hatası:", error);
-            alert("Çıkış yapılırken bir hata oluştu.");
+            showToast("Çıkış yapılırken bir hata oluştu.", "error");
+
         }
     }
 
@@ -280,10 +338,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 garsonName: garsonAdi
             });
             console.log(`Sipariş ${siparisDocId} işleme alındı.`);
+            showToast("Sipariş işleme alındı!", "success");
             // renderBekleyenSiparisler ve renderAlinanSiparisler onSnapshot ile otomatik güncellenecek.
         } catch (error) {
             console.error("Sipariş işleme alınırken Firestore hatası:", error);
-            alert("Sipariş işleme alınırken bir hata oluştu.");
+            showToast("Sipariş işleme alınırken bir hata oluştu.", "error");
+
         }
     }
 
@@ -335,19 +395,22 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn(`Ödenen sipariş (eski ID: ${siparisDocId}) için tableId bulunamadı, masa durumu güncellenemedi.`);
         }
 
-        alert(`Sipariş (ID: ${siparisDocId}) için ödeme alındı ve sipariş tamamlandı.`);
+       showToast(`Ödeme alındı ve Masa Boşaltıldı!.`, "success");
+
         // renderAlinanSiparisler (calisan.js) ve renderMasalar (app.js)
         // onSnapshot dinleyicileri sayesinde otomatik olarak güncellenecektir.
 
     } catch (error) {
         console.error("Ödeme yapılırken Firestore hatası:", error);
-        alert("Ödeme işlemi sırasında bir hata oluştu. Lütfen konsolu kontrol edin.");
+        showToast("Ödeme işlemi sırasında bir hata oluştu. Lütfen konsolu kontrol edin.", "error");
+
     }
 }
 
     async function toggleDetay(event) {
     if (!aktifCalisanAuth) {
-        alert("Detayları görmek için giriş yapmalısınız.");
+        showToast("Detayları görmek için giriş yapmalısınız.", "warning");
+
         return;
     }
     const siparisDocId = event.target.dataset.id; // Bu Firestore döküman ID'si

@@ -85,9 +85,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     }
 
-    function showToast(message, type = "success") {
+   window.showToast = function(message, type = "success") {
     const container = document.getElementById("toast-container");
-    if (!container) return;
+    if (!container) {
+        console.warn("toast-container bulunamadı!");
+        return;
+    }
 
     const toast = document.createElement("div");
     toast.className = `toast ${type}`;
@@ -98,15 +101,12 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         toast.remove();
     }, 3000);
-}
+};
 
 
 
     function yoneticiGosterHata(mesaj) {
-        if (yoneticiGirisHataMesaji) {
-            yoneticiGirisHataMesaji.textContent = mesaj;
-            yoneticiGirisHataMesaji.style.display = 'block';
-        }
+        showToast(mesaj, "error");
     }
 
     function yoneticiGirisBasariliArayuzunuGoster() {
@@ -119,8 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (guncelSifreInput) guncelSifreInput.value = '';
         if (guncelYeniSifreInput) guncelYeniSifreInput.value = '';
         if (profilGuncelleMesajP) {
-            profilGuncelleMesajP.textContent = '';
-            profilGuncelleMesajP.style.color = 'green';
+            showToast("Giriş yapıldı!", "success");
+
         }
          if (yoneticiGirisHataMesaji) { // Başarılı girişte hata mesajını temizle
             yoneticiGirisHataMesaji.textContent = '';
@@ -175,8 +175,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 kullanicilariYukle(); // localStorage kullanıyor (sonra güncellenecek)
                 menuyuYukleYonetici(); // Firestore kullanıyor
                 masalariYukleYonetici(); // Firestore kullanıyor
-                if (raporTarihInput) raporTarihInput.valueAsDate = new Date();
-                raporGoster(); // Firestore kullanıyor
+                
+                if (raporTarihInput) {
+                  setTimeout(() => {
+                    raporTarihInput.valueAsDate = new Date();
+                    setTimeout(() => {
+                      raporGoster();
+                    }, 100);
+                  }, 100);
+                }
+
+
             } else {
                 console.log("Giriş reddedildi (Yönetici). Kullanıcı Firestore'da bulunamadı veya rolü Yonetici değil:", user.email);
                 yoneticiGosterHata("Bu hesapla yönetici olarak giriş yapma yetkiniz yok veya hesap bilgileriniz eksik.");
@@ -228,7 +237,8 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("Firebase'den yönetici çıkışı yapıldı.");
         } catch (error) {
             console.error("Firebase yönetici çıkış hatası:", error);
-            alert("Çıkış yapılırken bir hata oluştu.");
+            showToast("Çıkış yapılırken bir hata oluştu.", "error");
+    
         }
     }
 
@@ -313,70 +323,26 @@ async function kullanicilariYukle() {
             const li = document.createElement('li');
             li.innerHTML = `
                 <span>${garson.username || garson.email} (E-posta: ${garson.email})</span>
-                <div>
-                    <button class="kullanici-duzenle-btn btn-warning" data-uid="${garson.uid}">Düzenle</button>
-                    <button class="kullanici-sil-btn btn-danger" data-uid="${garson.uid}">Sil</button>
-                </div>
+                
             `;
             kullaniciListesiUl.appendChild(li);
         });
-        addKullaniciButtonListeners(); // Butonlara event listener ekle
     } catch (error) {
         console.error("Firestore'dan garsonlar yüklenirken hata:", error);
         if (error.message.includes("indexes")) {
-             alert("Garsonları listelemek için bir Firestore indeksi gerekiyor. Lütfen konsoldaki linki takip ederek indeksi oluşturun: role (Artan), username (Artan)");
+             showToast("Garsonları listelemek için Firestore indeksi gerekiyor. Detaylar için konsolu kontrol et.", "warning");
+
         }
         if (kullaniciListesiUl) kullaniciListesiUl.innerHTML = '<li>Garsonlar yüklenirken bir hata oluştu.</li>';
     }
 }    
 
-function addKullaniciButtonListeners() {
-    if (!kullaniciListesiUl) return;
-    kullaniciListesiUl.querySelectorAll('.kullanici-duzenle-btn').forEach(btn => {
-        btn.removeEventListener('click', kullaniciDuzenleFormunuDoldur); // Öncekini kaldır
-        btn.addEventListener('click', kullaniciDuzenleFormunuDoldur);
-    });
-    kullaniciListesiUl.querySelectorAll('.kullanici-sil-btn').forEach(btn => {
-        btn.removeEventListener('click', kullaniciSil); // Öncekini kaldır
-        btn.addEventListener('click', kullaniciSil);
-    });
-}   
-
-async function kullaniciDuzenleFormunuDoldur(event) {
-    if (!aktifYoneticiAuth) return;
-    const garsonUID = event.target.dataset.uid; // Garsonun Firebase Auth UID'si
-
-    try {
-        const docRef = db.collection('users').doc(garsonUID);
-        const docSnap = await docRef.get();
-
-        if (docSnap.exists) {
-            const garson = docSnap.data();
-            if (kullaniciEditIdInput) kullaniciEditIdInput.value = garsonUID; // Hidden input'a UID'yi sakla
-            if (yeniKullaniciAdiInput) yeniKullaniciAdiInput.value = garson.username || '';
-            if (yeniSifreInput) {
-                yeniSifreInput.value = ''; // Şifre alanı düzenlemede gösterilmez/doldurulmaz
-                yeniSifreInput.placeholder = 'Şifre değiştirilmeyecekse boş bırakın';
-                yeniSifreInput.required = false; // Düzenlemede şifre zorunlu değil
-            }
-            // E-posta alanı genellikle düzenlenmez, o yüzden forma eklemedik.
-            // Eğer e-postayı da göstermek istersen, formuna bir alan ekleyip burada doldurabilirsin.
-            if (kullaniciKaydetBtn) kullaniciKaydetBtn.textContent = 'Güncelle';
-        } else {
-            alert("Düzenlenecek garson bulunamadı.");
-            kullaniciFormunuTemizle();
-        }
-    } catch (error) {
-        console.error("Firestore'dan garson düzenleme için okunurken hata:", error);
-        alert("Garson bilgileri yüklenirken bir hata oluştu.");
-    }
-}
-
+  
 
 
 async function kullaniciKaydet() {
     if (!aktifYoneticiAuth) {
-        alert("Bu işlemi yapmak için giriş yapmalısınız.");
+        showToast("Bu işlemi yapmak için giriş yapmalısınız.", "error");
         return;
     }
 
@@ -391,20 +357,23 @@ async function kullaniciKaydet() {
     const password = yeniSifreInput.value;
 
     if (!username) {
-        alert('Garson adı (kullanıcı adı) boş bırakılamaz.');
+        showToast("Garson adı (kullanıcı adı) boş bırakılamaz.", "error");
+
         return;
     }
 
     // YENİ GARSON EKLEME DURUMU
      if (!editUID) { // YENİ GARSON EKLEME
         if (!yeniGarsonEmailInput) {
-            alert("HATA: Garson e-posta input'u HTML'de bulunamadı (ID: yeni-kullanici-email). Lütfen HTML'i kontrol edin.");
+            showToast("Garson e-posta input'u bulunamadı. Lütfen HTML'i kontrol edin.", "error");
+
             return;
         }
         const emailForNewUser = yeniGarsonEmailInput.value.trim();
 
         if (!emailForNewUser || !password) {
-            alert('Yeni garson için e-posta ve şifre boş bırakılamaz.');
+           showToast("Yeni garson için e-posta ve şifre boş bırakılamaz.", "error");
+
             return;
         }
 
@@ -446,64 +415,11 @@ async function kullaniciKaydet() {
             } else if (error.code === 'auth/invalid-email') {
                 hataMesajiKullaniciya = "Lütfen geçerli bir e-posta formatı girin.";
             }
-            alert(hataMesajiKullaniciya);
+            showToast(hataMesajiKullaniciya,"eror");
         }
     }
     // --- BU BLOK DEĞİŞTİ ---
-    else { // MEVCUT GARSONU GÜNCELLEME DURUMU (Bu kısım aynı kalabilir)
-        try {
-            const garsonRef = db.collection('users').doc(editUID);
-            const updates = { username: username };
-            if (password) {
-                alert("Şifre güncelleme işlemi bu arayüzden desteklenmiyor.");
-            }
-            await garsonRef.update(updates);
-            kullanicilariYukle();
-            kullaniciFormunuTemizle();
-            showToast(`"${username}" adlı yeni garson başarıyla eklendi. Güvenlik nedeniyle tekrar giriş yapmanız gerekiyor.`, "success");
-
-setTimeout(() => {
-    auth.signOut().then(() => {
-        setTimeout(() => location.reload(), 1000);
-    });
-}, 2000);
-
-        } catch (error) {
-            console.error("Garson güncellenirken Firestore hatası:", error);
-            alert("Garson güncellenirken bir hata oluştu.");
-        }
-    }
     
-}
-
-async function kullaniciSil(event) {
-    if (!aktifYoneticiAuth) return;
-    const garsonUID = event.target.dataset.uid;
-
-    let garsonUsername = `UID: ${garsonUID} olan garson`;
-    try {
-        const docSnap = await db.collection('users').doc(garsonUID).get();
-        if (docSnap.exists()) {
-            garsonUsername = docSnap.data().username || garsonUsername;
-        }
-    } catch (e) { /* Hata önemli değil, varsayılan adı kullan */ }
-
-    if (!confirm(`"${garsonUsername}" adlı garsonu silmek istediğinizden emin misiniz? Bu işlem kullanıcının sisteme girişini ENGELLEMEZ, sadece yetkilerini kaldırır.`)) {
-        return;
-    }
-
-    try {
-        // Sadece Firestore'dan silelim (Auth'dan silmek daha riskli)
-        await db.collection('users').doc(garsonUID).delete();
-        alert(`"${garsonUsername}" adlı garsonun Firestore kaydı silindi.`);
-        kullanicilariYukle();
-        if (kullaniciEditIdInput && kullaniciEditIdInput.value === garsonUID) {
-            kullaniciFormunuTemizle();
-        }
-    } catch (error) {
-        console.error("Garson silinirken Firestore hatası:", error);
-        alert("Garson silinirken bir hata oluştu.");
-    }
 }
 
 
@@ -581,7 +497,8 @@ async function masaDuzenleFormunuDoldur(event) {
 
 async function masaKaydet() {
     if (!aktifYoneticiAuth) {
-        alert("Bu işlemi yapmak için giriş yapmalısınız.");
+        showToast("Bu işlemi yapmak için giriş yapmalısınız.", "error");
+
         return;
     }
 
@@ -590,23 +507,27 @@ async function masaKaydet() {
     const isActive = masaAktifMiSelect.value === 'true';
 
     if (!name) {
-        alert("Masa adı boş bırakılamaz.");
+        showToast("Masa adı boş bırakılamaz.", "error");
+
         return;
     }
 
     try {
         if (id) {
             await db.collection('tables').doc(id).update({ name, isActive });
-            alert("Masa güncellendi.");
+            showToast("Masa başarıyla güncellendi.", "success");
+
         } else {
             await db.collection('tables').add({ name, isActive });
-            alert("Yeni masa eklendi.");
+            showToast("Yeni masa eklendi.", "success");
+
         }
         masaFormunuTemizle();
         masalariYukleYonetici();
     } catch (error) {
         console.error("Masa kaydedilirken hata:", error);
-        alert("Masa kaydedilirken bir hata oluştu.");
+        showToast("Masa kaydedilirken bir hata oluştu.", "error");
+
     }
 }
 
@@ -619,7 +540,7 @@ async function masaSil(event) {
         masalariYukleYonetici();
     } catch (error) {
         console.error("Masa silinirken hata:", error);
-        alert("Masa silinirken bir hata oluştu.");
+         showToast("Masa silinirken bir hata oluştu.", "error");
     }
 }
 
@@ -724,7 +645,8 @@ async function urunKaydet() {
     const imagePath = urunFotoInput.value.trim();
 
     if (!name || isNaN(price)) {
-        alert("Ürün adı ve geçerli fiyat girilmelidir.");
+        showToast("Ürün adı ve geçerli fiyat girilmelidir.", "error");
+
         return;
     }
 
@@ -733,16 +655,19 @@ async function urunKaydet() {
     try {
         if (id) {
             await db.collection('menuItems').doc(id).update(urunData);
-            alert("Ürün güncellendi.");
+            showToast("Ürün güncellendi.", "success");
+
         } else {
             await db.collection('menuItems').add(urunData);
-            alert("Yeni ürün eklendi.");
+            showToast("Yeni ürün eklendi.", "success");
+
         }
         urunFormunuTemizle();
         menuyuYukleYonetici();
     } catch (error) {
         console.error("Ürün kaydedilirken hata:", error);
-        alert("Ürün kaydedilirken bir hata oluştu.");
+        showToast("Ürün kaydedilirken bir hata oluştu.", "error");
+
     }
 }
 
@@ -755,12 +680,14 @@ async function urunSil(event) {
         menuyuYukleYonetici();
     } catch (error) {
         console.error("Ürün silinirken hata:", error);
-        alert("Ürün silinirken bir hata oluştu.");
+        showToast("Ürün silinirken bir hata oluştu.", "error");
+
     }
 }
 
     // --- Raporlama Fonksiyonları (Firestore kullanıyor) ---
     async function raporGoster() {
+        
         console.log(">>> raporGoster ÇAĞRILDI. aktifYoneticiAuth:", aktifYoneticiAuth ? aktifYoneticiAuth.uid : "YOK");
 
         const raporTarihInputEl = document.getElementById('rapor-tarih'); // Fonksiyon içinde DOM'a erişim
@@ -772,8 +699,10 @@ async function urunSil(event) {
             return;
         }
         const tarihString = raporTarihInputEl.value;
+        
         if (!tarihString) {
-            alert("Lütfen bir tarih seçin.");
+            showToast("Lütfen bir tarih seçin.", "warning");
+
             if (raporSonucDivEl) raporSonucDivEl.innerHTML = '<p>Lütfen bir tarih seçerek raporu görüntüleyin.</p>';
             return;
         }
@@ -799,7 +728,8 @@ async function urunSil(event) {
         } catch (error) {
             console.error("Firestore'dan belirli tarihli rapor alınırken hata:", error);
             if (error.message.includes("indexes")) {
-                alert("Rapor sorgusu için bir Firestore indeksi gerekiyor. Lütfen konsoldaki linki takip ederek indeksi oluşturun.");
+                showToast("Rapor sorgusu için Firestore indeksi gerekiyor. Detaylar için geliştirici konsolunu kontrol edin.", "warning");
+
             }
             if (raporSonucDivEl) raporSonucDivEl.innerHTML = '<p>Rapor yüklenirken bir hata oluştu.</p>';
         }

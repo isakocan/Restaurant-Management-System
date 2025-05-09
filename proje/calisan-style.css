@@ -126,6 +126,159 @@
     to   { opacity: 0; transform: translateX(100%); }
   }
   
+.hesap-ayarlari {
+  max-width: 500px;
+  margin: 40px auto;
+  padding: 20px 30px;
+  background: #f8f8f8;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
 
-  
+.hesap-ayarlari h3 {
+  text-align: center;
+  font-size: 20px;
+  margin-bottom: 25px;
+}
+
+.hesap-ayarlari label {
+  display: block;
+  margin-top: 15px;
+  font-weight: 600;
+}
+
+.hesap-ayarlari input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-top: 5px;
+}
+
+.hesap-ayarlari .btn-info {
+  margin-top: 20px;
+  width: 100%;
+  padding: 12px;
+  background-color: #2ba3c6;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.hesap-ayarlari .btn-info:hover {
+  background-color: #1c8bad;
+}
+#garson-profil-guncelleme {
+  margin-top: 30px;
+  padding: 10px;
+ /* Arka plan düzleştirildi */
+  border-top: 1px solid #ccc;
+}
+
+  .yonetim-form { /* Formun bulunduğu sütun */
+    max-width: 500px;        /* Genişlik sınırlaması */
+    margin: 0 auto;          /* Ortala */
+    width: 100%;             /* Mobil uyumluluk */
+    text-align: left;
+}
+
+.yonetim-form h3, .liste-alani h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: var(--secondary-color);
+    font-weight: 500;
+    font-size: 1.2em;
+}
+
+.yonetim-form label {
+    font-weight: 500;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+    color: var(--secondary-color);
+    display: block;
+    margin-top: 15px;
+}
+.yonetim-form label:first-of-type {
+    margin-top: 0;
+}
+
+.yonetim-form input[type="text"],
+.yonetim-form input[type="password"],
+.yonetim-form input[type="number"],
+.yonetim-form select,
+.yonetim-form textarea {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 0.95em;
+}
+.yonetim-form textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+
+.yonetim-form input:focus, .yonetim-form textarea:focus {
+     border-color: var(--primary-color);
+     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+     outline: none;
+ }
+ .yonetim-form input[type="number"] {
+     padding-right: 5px;
+ }
+
+.yonetim-form .form-actions { /* Kaydet/Temizle butonları sarmalayıcı */
+    margin-top: 20px;
+}
+#calisan-profil {
+    padding: 25px 30px;
+    border-radius: 12px;
+    max-width: 600px;
+    
+}
+
+#calisan-profil h3 {
+    font-size: 1.4em;
+    margin-bottom: 20px;
+    color: #444;
+    font-weight: 600;
+    border-bottom: 1px solid #9b9b9b;
+    padding-bottom: 10px;
+}
+
+#calisan-profil input[type="password"],
+#calisan-profil input[type="text"] {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+#calisan-profil button {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95em;
+    cursor: pointer;
+}
+
+#garson-guncelle-btn {
+    background-color: #007bff;
+    color: white;
+    margin-right: 10px;
+}
+
+#garson-hesap-sil-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
 /* --- BURAYA KADAR OLAN KISMI GÜNCELLE/DEĞİŞTİR --- */

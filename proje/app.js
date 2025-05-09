@@ -263,7 +263,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     async function siparisOnayla() {
     if (Object.keys(sepet).length === 0 || seciliMasaId === null) {
-        alert("Sepetiniz boş veya bir masa seçilmedi!");
+        showToast("Sepetiniz boş!", "warning");
+
         return;
     }
 
@@ -297,7 +298,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     } catch (error) {
         console.error("Sipariş onayı için Firestore'dan menü okunurken hata:", error);
-        alert("Sipariş oluşturulurken bir menü hatası oluştu, lütfen tekrar deneyin.");
+        showToast("Sipariş oluşturulurken menü hatası oluştu. Lütfen tekrar deneyin.", "error");
+
         return;
     }
 
@@ -324,7 +326,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (siparisItems.length === 0) {
-        alert("Siparişinizde geçerli ürün bulunamadı!");
+        showToast("Siparişinizde geçerli ürün bulunamadı!", "warning");
+
         return;
     }
 
@@ -351,14 +354,16 @@ document.addEventListener('DOMContentLoaded', () => {
         await masaRef.update({ status: 'Dolu' });
         console.log(`Masa ${masaDocId} durumu Firestore'da 'Dolu' olarak güncellendi.`);
 
-        alert(`Masa ${masaAdiText} için siparişiniz alındı! Toplam: ${siparisTotal.toFixed(2)} TL`);
+        showToast(`${masaAdiText} için siparişiniz alındı!`, "success");
+
         sepet = {}; // Sepeti javascript tarafında boşalt
         // seciliMasaId = null; // kapatModal içinde yapılıyor
         kapatModal(); // Modal'ı kapat ve sepeti/arayüzü temizle
 
     } catch (error) {
         console.error("Firestore'a sipariş yazılırken veya masa güncellenirken hata: ", error);
-        alert("Siparişiniz oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.");
+        showToast("Siparişiniz oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.", "error");
+
     }
 }
 
