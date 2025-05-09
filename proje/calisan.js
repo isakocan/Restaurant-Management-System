@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elementleri ---
     const calisanGirisFormu = document.getElementById('calisan-giris-formu');
-    const kullaniciAdiInput = document.getElementById('calisan-kullanici-adi');
+    const kullaniciAdiInput = document.getElementById('calisan-kullanici-adi'); // HTML'de type="email" olmalı
     const sifreInput = document.getElementById('calisan-sifre');
     const girisYapBtn = document.getElementById('calisan-giris-yap-btn');
     const hataMesajiP = document.getElementById('calisan-giris-hata-mesaji');
@@ -16,133 +16,142 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Uygulama Durumu ---
     let aktifCalisanAuth = null;
+    let aktifCalisanData = null; // Firestore'dan gelen kullanıcı verisini (rol, username) saklamak için
 
-    // --- Fonksiyonlar ---
-    // calisan.js - aktifCalisanAuth tanımından SONRA
-
-auth.onAuthStateChanged(async (user) => {
-    if (user) {
-        aktifCalisanAuth = user; // Firebase Auth bilgisini sakla
-
-        // Firestore'dan kullanıcı verilerini (rol dahil) çek
-        const calisanData = await getKullaniciData(user.uid); // YENİ ÇAĞRI
-
-        if (calisanData && calisanData.role === 'Garson') {
-            // Kullanıcı Firestore'da bulundu VE rolü "Garson" ise
-            // aktifCalisanFirestoreData = calisanData; // İstersen tüm Firestore verisini saklayabilirsin
-            if (aktifCalisanAdiSpan) {
-                // username alanını Firestore'dan alalım, eğer yoksa e-postadan türetelim
-                aktifCalisanAdiSpan.textContent = ilkHarfiBuyut(calisanData.username || user.email.split('@')[0]);
-            }
-            girisBasariliArayuzunuGoster();
-            renderBekleyenSiparisler();
-            renderAlinanSiparisler();
-        } else {
-            // Kullanıcı Firestore'da bulunamadı VEYA rolü "Garson" değilse
-            console.log("Giriş reddedildi. Kullanıcı Firestore'da bulunamadı veya rolü Garson değil:", user.email);
-            gosterHata("Bu hesapla garson olarak giriş yapma yetkiniz yok veya hesap bilgileriniz eksik.");
-            await calisanCikisYapFirebase(); // Otomatik olarak çıkış yaptır
-        }
-
-    } else {
-        aktifCalisanAuth = null;
-        // aktifCalisanFirestoreData = null;
-        cikisYapildiArayuzunuGoster();
+    // --- YARDIMCI FONKSİYONLAR ---
+    function ilkHarfiBuyut(str) {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     }
-
-    // Giriş/Çıkış butonlarının tıklanabilirliğini ayarla
-    if (girisYapBtn) {
-        girisYapBtn.disabled = !!user; // Eğer user varsa (giriş yapılmışsa) butonu KİTLE
-    }
-    if (cikisYapBtn) {
-        cikisYapBtn.disabled = !user; // Eğer user yoksa (çıkış yapılmışsa) butonu KİTLE
-    }
-});
-
-function girisBasariliArayuzunuGoster() {
-    if (calisanGirisFormu) calisanGirisFormu.style.display = 'none'; // Giriş formunu gizle
-    if (calisanIcerikDiv) calisanIcerikDiv.style.display = 'block';  // Çalışan içeriğini göster
-    if (calisanBilgiDiv) calisanBilgiDiv.style.display = 'flex';    // Sağ üstteki hoş geldin mesajını göster
-}
-
-function cikisYapildiArayuzunuGoster() {
-    if (calisanIcerikDiv) calisanIcerikDiv.style.display = 'none';   // Çalışan içeriğini gizle
-    if (calisanBilgiDiv) calisanBilgiDiv.style.display = 'none';    // Sağ üstteki hoş geldin mesajını gizle
-    if (calisanGirisFormu) calisanGirisFormu.style.display = 'block';  // Giriş formunu göster
-
-    if (kullaniciAdiInput) kullaniciAdiInput.value = ''; // E-posta input'unu temizle
-    if (sifreInput) sifreInput.value = '';             // Şifre input'unu temizle
-
-    // Listeleri de "giriş yapınız" mesajıyla güncelle
-    if (bekleyenListesiUl) bekleyenListesiUl.innerHTML = '<li>Siparişleri görmek için giriş yapınız.</li>';
-    if (alinanListesiUl) alinanListesiUl.innerHTML = '<li>Siparişleri görmek için giriş yapınız.</li>';
-}
-
-
-async function calisanGirisYapFirebase() {
-    if (!kullaniciAdiInput || !sifreInput || !hataMesajiP) return;
-
-    if (hataMesajiP) {
-        hataMesajiP.textContent = '';
-        hataMesajiP.style.display = 'none';
-    }
-
-    const email = kullaniciAdiInput.value.trim(); // HTML'deki input'tan e-postayı al
-    const password = sifreInput.value;
-    hataMesajiP.style.display = 'none'; // Önceki hata mesajını temizle
-
-    if (!email || !password) {
-        gosterHata("E-posta ve şifre boş bırakılamaz.");
-        return;
-    }
-
-    try {
-        // Firebase'e "bu e-posta ve şifreyle giriş yapmayı dene" diyoruz
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        // Eğer buraya geldiyse, Firebase girişi BAŞARILI buldu.
-        // `auth.onAuthStateChanged` zaten tetiklenecek ve arayüzü güncelleyecek.
-        console.log("Firebase'den giriş başarılı:", userCredential.user);
-        // Giriş başarılı olduğu için inputları temizleyebiliriz.
-        kullaniciAdiInput.value = '';
-        sifreInput.value = '';
-    } catch (error) {
-        console.error("Firebase giriş hatası:", error);
-        // Hata kodlarına göre daha anlaşılır mesajlar verelim
-        if (error.code === 'auth/user-not-found' ||
-            error.code === 'auth/wrong-password' ||
-            error.code === 'auth/invalid-credential' || // Bu da bazen gelebiliyor
-            error.code === 'auth/invalid-login-credentials') { // Senin aldığın hata
-            gosterHata("E-posta veya şifre hatalı. Lütfen kontrol edip tekrar deneyin.");
-        } else if (error.code === 'auth/invalid-email') {
-            gosterHata("Lütfen geçerli bir e-posta adresi girin.");
-        } else if (error.code === 'auth/too-many-requests') {
-            gosterHata("Çok fazla hatalı giriş denemesi yapıldı. Lütfen daha sonra tekrar deneyin.");
-        } else {
-            // Diğer beklenmedik hatalar için genel bir mesaj
-            gosterHata("Giriş sırasında bir sorun oluştu. Lütfen tekrar deneyin.");
-            // İstersen teknik hata kodunu da loglayabilirsin veya daha detaylı bir mesaj verebilirsin.
-            // gosterHata("Giriş sırasında bir sorun oluştu. Hata: " + error.message);
-        }
-    }
-}
-
-function ilkHarfiBuyut(str) {
-    if (!str) return ''; // Eğer string boşsa boş döndür
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase(); // İlk harfi büyüt, geri kalanını küçült
-}
 
     function gosterHata(mesaj) {
-        if(hataMesajiP) {
+        if (hataMesajiP) {
             hataMesajiP.textContent = mesaj;
             hataMesajiP.style.display = 'block';
         }
     }
 
-    async function calisanCikisYapFirebase() {
+    function girisBasariliArayuzunuGoster() {
+    console.log(">>> girisBasariliArayuzunuGoster ÇAĞRILDI");
+    if (calisanGirisFormu) {
+        calisanGirisFormu.style.display = 'none';
+        console.log(">>> calisanGirisFormu gizlendi."); // EK LOG
+    } else {
+        console.error(">>> calisanGirisFormu elementi bulunamadı!"); // EK LOG
+    }
+    if (calisanIcerikDiv) {
+        calisanIcerikDiv.style.display = 'block';
+        console.log(">>> calisanIcerikDiv gösterildi."); // EK LOG
+    } else {
+        console.error(">>> calisanIcerikDiv elementi bulunamadı!"); // EK LOG
+    }
+    if (calisanBilgiDiv) {
+        calisanBilgiDiv.style.display = 'flex';
+    }
+}
+
+    function cikisYapildiArayuzunuGoster() {
+        console.log(">>> cikisYapildiArayuzunuGoster ÇAĞRILDI");
+        if (calisanIcerikDiv) calisanIcerikDiv.style.display = 'none';
+        if (calisanBilgiDiv) calisanBilgiDiv.style.display = 'none';
+        if (calisanGirisFormu) calisanGirisFormu.style.display = 'block';
+        if (kullaniciAdiInput) kullaniciAdiInput.value = '';
+        if (sifreInput) sifreInput.value = '';
+        // hataMesajiP'yi burada temizleme (Seçenek 1'e göre)
+        if (bekleyenListesiUl) bekleyenListesiUl.innerHTML = '<li>Siparişleri görmek için giriş yapınız.</li>';
+        if (alinanListesiUl) alinanListesiUl.innerHTML = '<li>Siparişleri görmek için giriş yapınız.</li>';
+    }
+
+    function addBekleyenSiparisListeners() {
+        if (!bekleyenListesiUl) return;
+        bekleyenListesiUl.querySelectorAll('.isleme-al-btn').forEach(btn => {
+            btn.removeEventListener('click', islemeAl); // Öncekini kaldır
+            btn.addEventListener('click', islemeAl);
+        });
+        bekleyenListesiUl.querySelectorAll('.detay-goster-btn').forEach(btn => {
+            btn.removeEventListener('click', toggleDetay); // Öncekini kaldır
+            btn.addEventListener('click', toggleDetay);
+        });
+    }
+
+    function addAlinanSiparisListeners() {
+        if (!alinanListesiUl) return;
+        alinanListesiUl.querySelectorAll('.detay-goster-btn').forEach(btn => {
+            btn.removeEventListener('click', toggleDetay); // Öncekini kaldır
+            btn.addEventListener('click', toggleDetay);
+        });
+        alinanListesiUl.querySelectorAll('.odeme-yapildi-btn').forEach(btn => {
+            btn.removeEventListener('click', odemeYapildi); // Öncekini kaldır
+            btn.addEventListener('click', odemeYapildi);
+        });
+    }
+
+    // --- ANA İŞLEV FONKSİYONLARI ---
+    auth.onAuthStateChanged(async (user) => {
+        console.log(">>> onAuthStateChanged tetiklendi, user:", user ? user.uid : null);
+        if (user) {
+            aktifCalisanAuth = user;
+            aktifCalisanData = await getKullaniciData(user.uid); // getKullaniciData ortak.js'de olmalı
+
+            if (aktifCalisanData && aktifCalisanData.role === 'Garson') {
+                console.log(">>> Garson rolü doğrulandı. Arayüz gösteriliyor ve siparişler yükleniyor.");
+                if (aktifCalisanAdiSpan) {
+                    aktifCalisanAdiSpan.textContent = ilkHarfiBuyut(aktifCalisanData.username || user.email.split('@')[0]);
+                }
+                girisBasariliArayuzunuGoster();
+                renderBekleyenSiparisler();
+                renderAlinanSiparisler(); // Bunu da çağıralım
+            } else {
+                console.log(">>> Giriş reddedildi. Kullanıcı Firestore'da bulunamadı veya rolü Garson değil:", user.email);
+                gosterHata("Bu hesapla garson olarak giriş yapma yetkiniz yok veya hesap bilgileriniz eksik.");
+                await calisanCikisYapFirebase();
+            }
+        } else {
+            aktifCalisanAuth = null;
+            aktifCalisanData = null;
+            cikisYapildiArayuzunuGoster();
+        }
+        if (girisYapBtn) girisYapBtn.disabled = !!(aktifCalisanAuth && aktifCalisanData && aktifCalisanData.role === 'Garson');
+        if (cikisYapBtn) cikisYapBtn.disabled = !(aktifCalisanAuth && aktifCalisanData && aktifCalisanData.role === 'Garson');
+    });
+
+    async function calisanGirisYapFirebase() {
+        // ... (Bu fonksiyon bir önceki mesajdaki gibi doğruydu, sadece hata mesajı temizleme eklenmişti) ...
+        // ... (En üstte hataMesajiP temizleme kalsın) ...
+        if (!kullaniciAdiInput || !sifreInput || !hataMesajiP) return;
+        if (hataMesajiP) {
+            hataMesajiP.textContent = '';
+            hataMesajiP.style.display = 'none';
+        }
+        const email = kullaniciAdiInput.value.trim();
+        const password = sifreInput.value;
+        if (!email || !password) {
+            gosterHata("E-posta ve şifre boş bırakılamaz.");
+            return;
+        }
         try {
-            // Firebase'e "mevcut kullanıcının çıkışını yap" diyoruz
+            const userCredential = await auth.signInWithEmailAndPassword(email, password);
+            console.log("Firebase'den giriş başarılı:", userCredential.user);
+            kullaniciAdiInput.value = '';
+            sifreInput.value = '';
+        } catch (error) {
+            console.error("Firebase giriş hatası:", error);
+            if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential' || error.code === 'auth/invalid-login-credentials') {
+                gosterHata("E-posta veya şifre hatalı. Lütfen kontrol edip tekrar deneyin.");
+            } else if (error.code === 'auth/invalid-email') {
+                gosterHata("Lütfen geçerli bir e-posta adresi girin.");
+            } else if (error.code === 'auth/too-many-requests') {
+                gosterHata("Çok fazla hatalı giriş denemesi yapıldı. Lütfen daha sonra tekrar deneyin.");
+            } else {
+                gosterHata("Giriş sırasında bir sorun oluştu. Lütfen tekrar deneyin.");
+            }
+        }
+    }
+
+    async function calisanCikisYapFirebase() {
+        // ... (Bu fonksiyon da doğruydu) ...
+        try {
             await auth.signOut();
-            // `auth.onAuthStateChanged` zaten tetiklenecek ve arayüzü güncelleyecek.
             console.log("Firebase'den çıkış yapıldı.");
         } catch (error) {
             console.error("Firebase çıkış hatası:", error);
@@ -150,233 +159,235 @@ function ilkHarfiBuyut(str) {
         }
     }
 
-    /** Bekleyen siparişleri listeler */
     function renderBekleyenSiparisler() {
-        if (!aktifCalisanAuth) { // Eğer kimse giriş yapmamışsa
-            if (bekleyenListesiUl) bekleyenListesiUl.innerHTML = '<li>Lütfen önce giriş yapınız.</li>';
-            return; // Fonksiyondan çık, bir şey yapma
-        }
-        if (!bekleyenListesiUl) return;
-        const siparisler = veriOku('siparisler', []);
-        const masalar = veriOku('masalar', []);
-        bekleyenListesiUl.innerHTML = '';
-
-        const bekleyenSiparisler = siparisler.filter(s => s.status === 'Bekliyor');
-
-        if (bekleyenSiparisler.length === 0) {
-            bekleyenListesiUl.innerHTML = '<li>Bekleyen sipariş yok.</li>';
+        // ... (Bir önceki mesajdaki onSnapshot'lu hali doğruydu, onu kullan) ...
+        // ... (Sadece addBekleyenSiparisListeners çağrısı kalacak) ...
+        if (!bekleyenListesiUl || !aktifCalisanAuth) {
+            if (bekleyenListesiUl) bekleyenListesiUl.innerHTML = '<li>Siparişleri görmek için giriş yapınız.</li>';
             return;
         }
-
-        bekleyenSiparisler.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
-
-        bekleyenSiparisler.forEach((siparis, index) => { // index'i al
-            const masa = masalar.find(m => m.id === siparis.tableId);
-            const masaAdi = masa ? masa.name : `Masa ID: ${siparis.tableId}`; // Masa bulunamazsa ID göster
-            const siparisZamani = new Date(siparis.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-            const siparisNo = index + 1; // 1'den başlayan sıra numarası
-    
-            const li = document.createElement('li');
-            li.innerHTML = `
-            <span>${siparisNo}. Sipariş - ${masaAdi} - ${siparisZamani}</span>
-            <div class="siparis-actions"> 
-               <button class="detay-goster-btn btn-info" data-id="${siparis.id}">Detaylar</button> 
-               <button class="isleme-al-btn btn-success" data-id="${siparis.id}">İşleme Al</button>  
-            </div>
-            <div class="siparis-detay" data-id="${siparis.id}" style="display: none;">
-               
-            </div>
-        `;
-            bekleyenListesiUl.appendChild(li);
-        });
-        addBekleyenSiparisListeners(); // Listenerları ekle/güncelle
-    }
-
-     /** Bekleyen sipariş butonlarına listener ekler */
-     function addBekleyenSiparisListeners() {
-        if (!bekleyenListesiUl) return;
-    
-        // İşleme Al Butonları
-        bekleyenListesiUl.querySelectorAll('.isleme-al-btn:not(.listener-added)').forEach(btn => {
-            btn.addEventListener('click', islemeAl);
-            btn.classList.add('listener-added'); // Tekrar eklenmesini önle
-        });
-    
-        // Detay Göster Butonları (YENİ EKLENDİ)
-        // Aynı toggleDetay fonksiyonunu kullanabiliriz çünkü o da siparisler listesinden okuyor.
-        bekleyenListesiUl.querySelectorAll('.detay-goster-btn:not(.listener-added)').forEach(btn => {
-            btn.addEventListener('click', toggleDetay); // Mevcut toggleDetay fonksiyonunu kullan
-            btn.classList.add('listener-added'); // Tekrar eklenmesini önle
-        });
-    }
-
-    /** Alınan siparişleri listeler */
-    function renderAlinanSiparisler() {
-        if (!aktifCalisanAuth) { // Eğer kimse giriş yapmamışsa
-            if (alinanListesiUl) alinanListesiUl.innerHTML = '<li>Lütfen önce giriş yapınız.</li>';
-            return; // Fonksiyondan çık, bir şey yapma
-        }
-        if (!alinanListesiUl || !aktifCalisan) return;
-        const siparisler = veriOku('siparisler', []);
-        const masalar = veriOku('masalar', []);
-        alinanListesiUl.innerHTML = '';
-
-        const alinanSiparisler = siparisler.filter(s => s.status === 'Alındı' && s.garsonId === aktifCalisan.id);
-
-        if (alinanSiparisler.length === 0) {
-            alinanListesiUl.innerHTML = '<li>Üzerinize aldığınız aktif sipariş yok.</li>';
-            return;
-        }
-
-         alinanSiparisler.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
-
-         alinanSiparisler.forEach((siparis, index) => { // index'i al
-            const masa = masalar.find(m => m.id === siparis.tableId);
-            const masaAdi = masa ? masa.name : `Masa ID: ${siparis.tableId}`; // Masa bulunamazsa ID göster
-            const siparisZamani = new Date(siparis.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-            const siparisNo = index + 1; // 1'den başlayan sıra numarası <<<--- DEĞİŞİKLİK
-
-            const li = document.createElement('li');
-            li.innerHTML = `
-            <span>${siparisNo}. Sipariş - ${masaAdi} - ${siparisZamani}</span>
-            <div class="siparis-actions"> 
-               <button class="detay-goster-btn btn-info" data-id="${siparis.id}">Detaylar</button> 
-               <button class="odeme-yapildi-btn btn-warning" data-id="${siparis.id}">Ödeme Yapıldı</button> 
-            </div>
-            <div class="siparis-detay" data-id="${siparis.id}" style="display: none;">
-                
-            </div>
-        `;
-            alinanListesiUl.appendChild(li);
-        });
-        addAlinanSiparisListeners();
-    }
-
-    /** Alınan sipariş butonlarına listener ekler */
-    function addAlinanSiparisListeners() {
-         if (!alinanListesiUl) return;
-         alinanListesiUl.querySelectorAll('.detay-goster-btn:not(.listener-added)').forEach(btn => {
-            btn.addEventListener('click', toggleDetay);
-            btn.classList.add('listener-added');
-        });
-         alinanListesiUl.querySelectorAll('.odeme-yapildi-btn:not(.listener-added)').forEach(btn => {
-            btn.addEventListener('click', odemeYapildi);
-            btn.classList.add('listener-added');
-        });
-    }
-
-    /** "İşleme Al" butonuna tıklandığında çalışır */
-    function islemeAl(event) {
-        if (!aktifCalisanAuth) { // Eğer kimse giriş yapmamışsa
-            alert("Bu işlemi yapmak için giriş yapmalısınız.");
-            return; // Fonksiyondan çık
-        }
-        if (!aktifCalisan) return;
-        const siparisId = parseInt(event.target.dataset.id);
-        let siparisler = veriOku('siparisler', []);
-        const siparisIndex = siparisler.findIndex(s => s.id === siparisId && s.status === 'Bekliyor');
-
-        if (siparisIndex !== -1) {
-            siparisler[siparisIndex].status = 'Alındı';
-            siparisler[siparisIndex].garsonId = aktifCalisan.id;
-            veriYaz('siparisler', siparisler);
-            renderBekleyenSiparisler();
-            renderAlinanSiparisler();
-        } else {
-            alert("Sipariş bulunamadı veya başka bir garson tarafından alınmış olabilir.");
-            renderBekleyenSiparisler();
-        }
-    }
-
-    /** "Ödeme Yapıldı" butonuna tıklandığında çalışır */
-    function odemeYapildi(event) {
-        if (!aktifCalisanAuth) { // Eğer kimse giriş yapmamışsa
-            alert("Bu işlemi yapmak için giriş yapmalısınız.");
-            return; // Fonksiyondan çık
-        }
-        const siparisId = parseInt(event.target.dataset.id);
-        let siparisler = veriOku('siparisler', []);
-        let masalar = veriOku('masalar', []);
-        let odenmisSiparisler = veriOku('odenmisSiparisler', []);
-
-        const siparisIndex = siparisler.findIndex(s => s.id === siparisId && s.status === 'Alındı');
-
-        if (siparisIndex !== -1) {
-            const odenenSiparis = { ...siparisler[siparisIndex] };
-            odenenSiparis.status = 'Ödendi';
-            odenenSiparis.odemeZamani = new Date().toISOString();
-            odenmisSiparisler.push(odenenSiparis);
-            veriYaz('odenmisSiparisler', odenmisSiparisler);
-
-            siparisler.splice(siparisIndex, 1);
-            veriYaz('siparisler', siparisler);
-
-            const masaIndex = masalar.findIndex(m => m.id === odenenSiparis.tableId);
-            if (masaIndex !== -1) {
-                masalar[masaIndex].status = 'Boş';
-                veriYaz('masalar', masalar);
+        db.collection('activeOrders')
+          .where('status', '==', 'Bekliyor')
+          .orderBy('timestamp', 'asc')
+          .onSnapshot(snapshot => {
+            bekleyenListesiUl.innerHTML = '';
+            if (snapshot.empty) {
+                bekleyenListesiUl.innerHTML = '<li>Bekleyen sipariş yok.</li>';
+                return;
             }
-            renderAlinanSiparisler();
-        } else {
-            alert("Ödenecek sipariş bulunamadı veya durumu değişmiş olabilir.");
-            renderAlinanSiparisler();
+            let siparisNo = 1;
+            snapshot.forEach(doc => {
+                const siparis = { id: doc.id, ...doc.data() };
+                const masaAdi = siparis.tableName || `Masa ID: ${siparis.tableId}`;
+                const siparisZamani = siparis.timestamp ?
+                                      siparis.timestamp.toDate().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) :
+                                      'Bilinmiyor';
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${siparisNo}. Sipariş - ${masaAdi} - ${siparisZamani}</span>
+                    <div class="siparis-actions">
+                       <button class="detay-goster-btn btn-info" data-id="${siparis.id}">Detaylar</button>
+                       <button class="isleme-al-btn btn-success" data-id="${siparis.id}">İşleme Al</button>
+                    </div>
+                    <div class="siparis-detay" data-id="${siparis.id}" style="display: none;"></div>
+                `;
+                bekleyenListesiUl.appendChild(li);
+                siparisNo++;
+            });
+            addBekleyenSiparisListeners();
+        }, error => {
+            console.error("Firestore'dan bekleyen siparişler dinlenirken hata:", error);
+            if (bekleyenListesiUl) bekleyenListesiUl.innerHTML = '<li>Bekleyen siparişler yüklenirken bir sorun oluştu.</li>';
+        });
+    }
+
+    async function renderAlinanSiparisler() {
+        if (!alinanListesiUl || !aktifCalisanAuth || !aktifCalisanData) { // aktifCalisanData da kontrol edilebilir
+            if (alinanListesiUl) alinanListesiUl.innerHTML = '<li>Siparişleri görmek için giriş yapınız.</li>';
+            return;
+        }
+
+        // Firestore'daki "activeOrders" koleksiyonunu DİNLE
+        // Sadece "Alındı" durumundaki ve mevcut garsona ait siparişleri al
+        db.collection('activeOrders')
+          .where('status', '==', 'Alındı')
+          .where('garsonId', '==', aktifCalisanAuth.uid) // Mevcut garsonun UID'si ile filtrele
+          .orderBy('timestamp', 'asc')
+          .onSnapshot(snapshot => {
+            alinanListesiUl.innerHTML = ''; // Her güncellemede listeyi temizle
+
+            if (snapshot.empty) {
+                alinanListesiUl.innerHTML = '<li>Üzerinize aldığınız aktif sipariş yok.</li>';
+                return;
+            }
+
+            let siparisNo = 1;
+            snapshot.forEach(doc => {
+                const siparis = { id: doc.id, ...doc.data() };
+                const masaAdi = siparis.tableName || `Masa ID: ${siparis.tableId}`;
+                const siparisZamani = siparis.timestamp ?
+                                      siparis.timestamp.toDate().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) :
+                                      'Bilinmiyor';
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${siparisNo}. Sipariş - ${masaAdi} - ${siparisZamani}</span>
+                    <div class="siparis-actions">
+                       <button class="detay-goster-btn btn-info" data-id="${siparis.id}">Detaylar</button>
+                       <button class="odeme-yapildi-btn btn-warning" data-id="${siparis.id}">Ödeme Yapıldı</button>
+                    </div>
+                    <div class="siparis-detay" data-id="${siparis.id}" style="display: none;"></div>
+                `;
+                alinanListesiUl.appendChild(li);
+                siparisNo++;
+            });
+            addAlinanSiparisListeners(); // Butonlara event listener'ları (yeniden) ekle
+        }, error => {
+            console.error("Firestore'dan alınan siparişler dinlenirken hata:", error);
+            if (alinanListesiUl) alinanListesiUl.innerHTML = '<li>Alınan siparişler yüklenirken bir sorun oluştu.</li>';
+        });
+    }
+
+    async function islemeAl(event) {
+        if (!aktifCalisanAuth || !aktifCalisanData) {
+            alert("Bu işlemi yapmak için giriş yapmalısınız ve bilgileriniz yüklenmiş olmalı.");
+            return;
+        }
+        const siparisDocId = event.target.dataset.id; // Bu Firestore döküman ID'si
+
+        const siparisRef = db.collection('activeOrders').doc(siparisDocId);
+
+        try {
+            const garsonAdi = aktifCalisanData.username || aktifCalisanAuth.email.split('@')[0];
+            await siparisRef.update({
+                status: 'Alındı',
+                garsonId: aktifCalisanAuth.uid, // Garsonun Firebase Auth UID'si
+                garsonName: garsonAdi
+            });
+            console.log(`Sipariş ${siparisDocId} işleme alındı.`);
+            // renderBekleyenSiparisler ve renderAlinanSiparisler onSnapshot ile otomatik güncellenecek.
+        } catch (error) {
+            console.error("Sipariş işleme alınırken Firestore hatası:", error);
+            alert("Sipariş işleme alınırken bir hata oluştu.");
         }
     }
 
-    /** Sipariş detaylarını gösterir/gizler ve içeriği yükler */
-    function toggleDetay(event) {
-        const siparisId = parseInt(event.target.dataset.id);
-        const buton = event.target;
-        const liElement = buton.closest('li');
-        if (!liElement) return;
-        const detayDiv = liElement.querySelector(`.siparis-detay[data-id="${siparisId}"]`);
+    async function odemeYapildi(event) {
+    if (!aktifCalisanAuth) { // Giriş yapmış bir çalışan olmalı
+        alert("Bu işlemi yapmak için giriş yapmalısınız.");
+        return;
+    }
+    const siparisDocId = event.target.dataset.id; // Ödenecek siparişin Firestore döküman ID'si (activeOrders'daki ID)
 
-        if (!detayDiv) return;
+    const siparisRef = db.collection('activeOrders').doc(siparisDocId);
 
-        const isHidden = detayDiv.style.display === 'none';
+    try {
+        const siparisSnap = await siparisRef.get(); // Önce siparişi activeOrders'dan oku
 
-        if (isHidden) {
-            const siparis = veriOku('siparisler', []).find(s => s.id === siparisId);
-            const menu = veriOku('menu', []);
-            if (siparis) {
-                let detayHtml = '<ul>';
+        if (!siparisSnap.exists) {
+            alert("Ödenecek sipariş bulunamadı veya zaten işlenmiş olabilir.");
+            // Liste onSnapshot ile güncellendiği için, bu durum oluştuysa liste zaten boştur.
+            // Bu yüzden burada ek bir render çağırmaya gerek yok.
+            return;
+        }
+
+        const odenenSiparisTemelData = siparisSnap.data(); // Siparişin mevcut verilerini al
+
+        // Ödenen sipariş için yeni bir obje oluşturup alanlarını güncelleyelim
+        const tamamlanmisSiparisData = {
+            ...odenenSiparisTemelData, // Mevcut tüm verileri kopyala (items, total, garsonId, garsonName vb.)
+            originalActiveOrderId: siparisSnap.id, // Orijinal activeOrders döküman ID'sini referans olarak sakla (opsiyonel)
+            status: 'Ödendi',                     // Durumu "Ödendi" yap
+            paymentTimestamp: firebase.firestore.FieldValue.serverTimestamp() // Ödeme zamanını sunucu zamanı olarak ata
+            // originalOrderId (bizim numerik ID'miz) zaten odenenSiparisTemelData içinde olmalı.
+        };
+
+        // 1. Tamamlanmış siparişi "completedOrders" koleksiyonuna YENİ BİR DÖKÜMAN olarak ekle
+        //    Firestore bu yeni döküman için kendi benzersiz ID'sini üretecek.
+        await db.collection('completedOrders').add(tamamlanmisSiparisData);
+        console.log(`Sipariş (eski ID: ${siparisDocId}) completedOrders koleksiyonuna eklendi.`);
+
+        // 2. Orijinal siparişi "activeOrders" koleksiyonundan SİL
+        await siparisRef.delete();
+        console.log(`Sipariş ${siparisDocId} activeOrders koleksiyonundan silindi.`);
+
+        // 3. İlgili masanın durumunu Firestore'daki "tables" koleksiyonunda "Boş" olarak güncelle
+        if (odenenSiparisTemelData.tableId) { // tableId sipariş verisinde olmalı
+            const masaRef = db.collection('tables').doc(odenenSiparisTemelData.tableId);
+            await masaRef.update({ status: 'Boş' });
+            console.log(`Masa ${odenenSiparisTemelData.tableId} durumu Firestore'da 'Boş' olarak güncellendi.`);
+        } else {
+            console.warn(`Ödenen sipariş (eski ID: ${siparisDocId}) için tableId bulunamadı, masa durumu güncellenemedi.`);
+        }
+
+        alert(`Sipariş (ID: ${siparisDocId}) için ödeme alındı ve sipariş tamamlandı.`);
+        // renderAlinanSiparisler (calisan.js) ve renderMasalar (app.js)
+        // onSnapshot dinleyicileri sayesinde otomatik olarak güncellenecektir.
+
+    } catch (error) {
+        console.error("Ödeme yapılırken Firestore hatası:", error);
+        alert("Ödeme işlemi sırasında bir hata oluştu. Lütfen konsolu kontrol edin.");
+    }
+}
+
+    async function toggleDetay(event) {
+    if (!aktifCalisanAuth) {
+        alert("Detayları görmek için giriş yapmalısınız.");
+        return;
+    }
+    const siparisDocId = event.target.dataset.id; // Bu Firestore döküman ID'si
+    const buton = event.target;
+    const liElement = buton.closest('li');
+    if (!liElement) return;
+
+    const detayDiv = liElement.querySelector(`.siparis-detay[data-id="${siparisDocId}"]`);
+    if (!detayDiv) return;
+
+    const isHidden = detayDiv.style.display === 'none';
+
+    if (isHidden) {
+        try {
+            const siparisSnap = await db.collection('activeOrders').doc(siparisDocId).get();
+            if (siparisSnap.exists) {
+                const siparis = siparisSnap.data();
+                let detayHtml = '<h4>Sipariş İçeriği:</h4><ul>';
                 if (siparis.items && siparis.items.length > 0) {
-                     siparis.items.forEach(item => {
-                        const urun = menu.find(u => u.id === item.itemId);
-                        const urunAdi = urun ? urun.name : `Bilinmeyen Ürün (${item.itemId})`;
-                        const fiyat = item.price !== undefined ? item.price.toFixed(2) : 'N/A';
-                         detayHtml += `<li>${item.quantity || '?'}x ${urunAdi} (${fiyat} TL)</li>`;
+                    siparis.items.forEach(item => {
+                        // item.name ve item.price sipariş dökümanında zaten var (denormalizasyon sayesinde)
+                        const itemTotal = (item.quantity || 0) * (item.price || 0);
+                        detayHtml += `<li>${item.quantity || '?'}x ${item.name} (${(item.price || 0).toFixed(2)} TL/adet) = ${itemTotal.toFixed(2)} TL</li>`;
                     });
                 } else {
-                     detayHtml += '<li>Sipariş içeriği boş.</li>';
+                    detayHtml += '<li>Sipariş içeriği boş.</li>';
                 }
                 detayHtml += '</ul>';
-                detayHtml += `<p><strong>Toplam: ${(siparis.total || 0).toFixed(2)} TL</strong></p>`;
+                detayHtml += `<p style="text-align:right; font-weight:bold;">Toplam Tutar: ${(siparis.total || 0).toFixed(2)} TL</p>`;
                 detayDiv.innerHTML = detayHtml;
+                detayDiv.style.display = 'block';
+                buton.textContent = 'Gizle';
             } else {
-                 detayDiv.innerHTML = 'Sipariş detayları yüklenemedi.';
+                detayDiv.innerHTML = '<p>Sipariş detayları bulunamadı.</p>';
+                detayDiv.style.display = 'block'; // Hata mesajını göstermek için
+                buton.textContent = 'Gizle'; // Buton metnini yine de değiştir
             }
+        } catch (error) {
+            console.error("Sipariş detayı çekilirken Firestore hatası:", error);
+            detayDiv.innerHTML = '<p>Sipariş detayları yüklenemedi.</p>';
             detayDiv.style.display = 'block';
             buton.textContent = 'Gizle';
-        } else {
-            detayDiv.style.display = 'none';
-            buton.textContent = 'Detaylar';
         }
+    } else {
+        detayDiv.style.display = 'none';
+        buton.textContent = 'Detaylar';
     }
+}
 
     // --- Event Listener'lar ---
-    if (girisYapBtn) {
-        girisYapBtn.addEventListener('click', calisanGirisYapFirebase); // YENİ FONKSİYONA BAĞLA
-    }
+    if (girisYapBtn) girisYapBtn.addEventListener('click', calisanGirisYapFirebase);
     if (sifreInput) {
         sifreInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                calisanGirisYapFirebase(); // YENİ FONKSİYONA BAĞLA
-            }
+            if (event.key === 'Enter') calisanGirisYapFirebase();
         });
     }
-    if (cikisYapBtn) {
-        cikisYapBtn.addEventListener('click', calisanCikisYapFirebase); // YENİ FONKSİYONA BAĞLA
-    }
+    if (cikisYapBtn) cikisYapBtn.addEventListener('click', calisanCikisYapFirebase);
 
 }); // DOMContentLoaded Sonu

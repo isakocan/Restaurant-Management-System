@@ -74,22 +74,22 @@ async function getKullaniciData(uid) {
 // --- Varsayılan Başlangıç Verileri ---
 
 const varsayilanMasalar = [
-    { id: 1, name: 'Masa 1', status: 'Boş' },
-    { id: 2, name: 'Masa 2', status: 'Boş' },
-    { id: 3, name: 'Masa 3', status: 'Boş' }, // Bu dolu kalsın (siparişi vardı)
-    { id: 4, name: 'Masa 4', status: 'Boş' },
-    { id: 5, name: 'Masa 5', status: 'Boş' },
-    { id: 6, name: 'Masa 6', status: 'Boş' }, // Yeni
-    { id: 7, name: 'Masa 7', status: 'Boş' }, // Yeni
-    { id: 8, name: 'Pencere 1', status: 'Boş' }, // Yeni - Farklı isim
-    { id: 9, name: 'Pencere 2', status: 'Boş' }, // Yeni
-    { id: 10, name: 'Bahçe 1', status: 'Boş' }, // ID'leri sıralı tutmak için güncelledim
-    { id: 11, name: 'Bahçe 2', status: 'Boş' },
-    { id: 12, name: 'Bahçe Köşe', status: 'Boş' }, // Yeni
-    { id: 13, name: 'Loca 1', status: 'Boş' },  // Bu dolu kalsın (siparişi vardı)
-    { id: 14, name: 'Loca 2', status: 'Boş' }, // Yeni
-    { id: 15, name: 'Teras A', status: 'Boş' }, // Yeni
-    { id: 16, name: 'Teras B', status: 'Boş' }, // Yeni
+    { id: 1, name: 'Masa 1', status: 'Boş', isActive: true },
+    { id: 2, name: 'Masa 2', status: 'Boş', isActive: true },
+    { id: 3, name: 'Masa 3', status: 'Boş', isActive: true },
+    { id: 4, name: 'Masa 4', status: 'Boş', isActive: true },
+    { id: 5, name: 'Masa 5', status: 'Boş', isActive: true },
+    { id: 6, name: 'Masa 6', status: 'Boş', isActive: true },
+    { id: 7, name: 'Masa 7', status: 'Boş', isActive: true },
+    { id: 8, name: 'Pencere 1', status: 'Boş', isActive: true },
+    { id: 9, name: 'Pencere 2', status: 'Boş', isActive: true },
+    { id: 10, name: 'Bahçe 1', status: 'Boş', isActive: true },
+    { id: 11, name: 'Bahçe 2', status: 'Boş', isActive: true },
+    { id: 12, name: 'Bahçe Köşe', status: 'Boş', isActive: true },
+    { id: 13, name: 'Loca 1', status: 'Boş', isActive: true },
+    { id: 14, name: 'Loca 2', status: 'Boş', isActive: true },
+    { id: 15, name: 'Teras A', status: 'Boş', isActive: true },
+    { id: 16, name: 'Teras B', status: 'Boş', isActive: true },
 ];
 
 const varsayilanMenu = [
@@ -136,7 +136,6 @@ const varsayilanKullanicilar = [
 ];
 
 
-const varsayilanSiparisler = [];
 
 // --- Başlangıç Verilerini Yükleme Fonksiyonu ---
 // Bu fonksiyon artık ilgili sayfanın JS'i tarafından çağrılacak.
@@ -144,12 +143,33 @@ async function baslangicVerileriniYukle() { // async yaptık!
     console.log("Başlangıç verileri kontrol ediliyor...");
     let changed = false;
 
-    // Masalar (Şimdilik localStorage'da kalıyor)
-    if (localStorage.getItem('masalar') === null) {
-        console.log("'masalar' localStorage'da bulunamadı, varsayılanlar yükleniyor.");
-        veriYaz('masalar', varsayilanMasalar); // localStorage'a yazar
-        changed = true;
+    // Masalar (Firestore'a Taşınıyor)
+    try {
+    const tablesCollectionRef = db.collection('tables'); // Koleksiyon adı: "tables"
+    const tablesSnapshot = await tablesCollectionRef.limit(1).get();
+
+    if (tablesSnapshot.empty) { // Eğer "tables" koleksiyonu boşsa
+        console.log("'tables' koleksiyonu Firestore'da boş, varsayılan masalar yükleniyor...");
+        const batch = db.batch();
+
+        varsayilanMasalar.forEach(masa => {
+            // Döküman ID'si olarak masanın kendi ID'sini string olarak kullanalım.
+            // Bu ID'ler genellikle sabittir ve yönetici tarafından bilinir.
+            const masaRef = tablesCollectionRef.doc(String(masa.id));
+            // masa objesinden id'yi çıkararak kalanını dökümana yaz
+            const { id, ...masaData } = masa;
+            batch.set(masaRef, masaData);
+        });
+
+        await batch.commit();
+        console.log("Varsayılan masalar Firestore'a başarıyla yüklendi.");
+        changed = true; // Bu değişkenin tanımlı olduğundan emin ol fonksiyonun başında
+    } else {
+        console.log("'tables' koleksiyonu Firestore'da mevcut, varsayılanlar yüklenmeyecek.");
     }
+} catch (error) {
+    console.error("Firestore 'tables' koleksiyonu kontrolü/yüklemesi sırasında hata:", error);
+}
 
     // --- MENÜ (Firestore'a Taşınıyor) ---
     try {
@@ -164,11 +184,11 @@ async function baslangicVerileriniYukle() { // async yaptık!
             const batch = db.batch(); // Toplu yazma işlemi için batch oluştur
 
             varsayilanMenu.forEach(urun => {
-                const urunRef = menuCollectionRef.doc(String(urun.id)); // Döküman referansı (ID'si ürün ID'si)
-                // urun objesinden id'yi çıkararak kalanını dökümana yaz (çünkü id zaten döküman id'si oldu)
-                const { id, ...urunData } = urun;
-                batch.set(urunRef, urunData);
-            });
+            const { id, ...urunDataForFirestore } = urun; // Orijinal 'id'yi 'productId' olarak sakla
+            urunDataForFirestore.productId = id; // Kendi numerik ID'mizi productId olarak ekliyoruz
+            const yeniUrunRef = menuCollectionRef.doc(); // Firestore otomatik ID üretecek
+            batch.set(yeniUrunRef, urunDataForFirestore);
+        });
 
             await batch.commit(); // Toplu yazma işlemini gerçekleştir
             console.log("Varsayılan menü Firestore'a başarıyla yüklendi.");
@@ -180,35 +200,7 @@ async function baslangicVerileriniYukle() { // async yaptık!
         console.error("Firestore menuItems kontrolü/yüklemesi sırasında hata:", error);
     }
     // --- MENÜ BİTTİ ---
-
-
-    // Kullanıcılar (Bu kısım Auth ve Firestore 'users' koleksiyonu ile yönetiliyor,
-    // dolayısıyla buradaki localStorage'a yazma mantığı artık geçerli değil veya farklı ele alınmalı)
-    // Şimdilik bu kısmı yorumlayabiliriz veya kaldırabiliriz.
-    // Rolleri Firestore'a 'users' koleksiyonuna yazdığımız için,
-    // `varsayilanKullanicilar`ı Auth'a ve 'users' koleksiyonuna ekleme işlemi
-    // ya manuel yapılır ya da bir kerelik bir script ile.
-    /*
-    if (localStorage.getItem('kullanicilar') === null) {
-        console.log("'kullanicilar' localStorage'da bulunamadı, varsayılanlar yükleniyor.");
-        veriYaz('kullanicilar', varsayilanKullanicilar);
-        changed = true;
-    }
-    */
-
-    // Siparişler (Şimdilik localStorage'da kalıyor)
-    if (localStorage.getItem('siparisler') === null) {
-        console.log("'siparisler' localStorage'da bulunamadı, varsayılanlar yükleniyor.");
-        veriYaz('siparisler', varsayilanSiparisler);
-        changed = true;
-    }
-
-    // Ödenmiş Siparişler (Şimdilik localStorage'da kalıyor)
-    if (localStorage.getItem('odenmisSiparisler') === null) {
-        console.log("'odenmisSiparisler' localStorage'da bulunamadı, boş liste oluşturuluyor.");
-        veriYaz('odenmisSiparisler', []);
-        changed = true;
-    }
+  
 
     if (changed) {
          console.log("Başlangıç verilerinde değişiklik yapıldı veya yüklendi.");

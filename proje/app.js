@@ -18,38 +18,69 @@ document.addEventListener('DOMContentLoaded', () => {
     let sepet = {};
 
     function renderMasalar() {
-        const defaultMasalar = [ /*...*/ ]; // Başlangıç masaları
-        const masalar = veriOku('masalar', defaultMasalar);
-        if (!masaAlani) return;
-        masaAlani.innerHTML = '';
-        masalar.forEach(masa => {
+    const masaAlani = document.getElementById('masa-alani');
+    if (!masaAlani) return;
+
+    // Firestore'daki "tables" koleksiyonunu DİNLE (gerçek zamanlı güncellemeler için)
+    // İsme göre sıralayalım (veya ID'ye göre de olabilir: .orderBy(firebase.firestore.FieldPath.documentId()))
+    db.collection('tables').orderBy('name').onSnapshot(snapshot => {
+        masaAlani.innerHTML = ''; // Her güncellemede alanı temizle
+
+        if (snapshot.empty) {
+            masaAlani.innerHTML = '<p>Gösterilecek masa bulunamadı.</p>';
+            return;
+        }
+
+        snapshot.forEach(doc => {
+            const masa = { id: doc.id, ...doc.data() }; // doc.id zaten string masa ID'miz
+
             const masaDiv = document.createElement('div');
             masaDiv.classList.add('masa');
             masaDiv.textContent = masa.name;
-            masaDiv.dataset.id = masa.id;
-            if (masa.status === 'Boş') {
-                masaDiv.classList.add('masa-bos');
-                masaDiv.addEventListener('click', masaTiklandi);
+            masaDiv.dataset.id = masa.id; // dataset.id olarak string masa ID'sini ata
+
+            if (masa.isActive === false) { // Eğer masa aktif değilse (kullanım dışı)
+                masaDiv.classList.add('masa-pasif'); // Yeni bir CSS sınıfı ekleyelim
+                masaDiv.title = "Bu masa geçici olarak kullanım dışıdır.";
+                // masaDiv.style.cursor = 'not-allowed'; // Zaten tıklama event'i eklemeyeceğiz
             } else {
-                masaDiv.classList.add('masa-dolu');
-                masaDiv.style.cursor = 'not-allowed';
+                // Masa aktifse, durumuna göre stil ve tıklama olayı ekle
+                if (masa.status === 'Boş') {
+                    masaDiv.classList.add('masa-bos');
+                    masaDiv.addEventListener('click', masaTiklandi); // masaTiklandi fonksiyonun hala var olmalı
+                } else { // Dolu veya başka bir durum (Rezerve vb. eklersen)
+                    masaDiv.classList.add('masa-dolu');
+                    masaDiv.style.cursor = 'not-allowed';
+                }
             }
             masaAlani.appendChild(masaDiv);
         });
-    }
+    }, error => {
+        console.error("Firestore'dan masalar dinlenirken hata:", error);
+        masaAlani.innerHTML = '<p>Masalar yüklenirken bir sorun oluştu.</p>';
+    });
+}
 
     function masaTiklandi(event) {
-        seciliMasaId = parseInt(event.target.dataset.id);
-        const masalar = veriOku('masalar');
-        const masa = masalar.find(m => m.id === seciliMasaId);
-        if (!masa) return;
-        if(modalMasaNo) modalMasaNo.textContent = masa.name;
-        sepet = {};
-        renderSepet();
-        renderKategoriler();
-        if(menuUrunlerDiv) menuUrunlerDiv.innerHTML = '';
-        if(siparisModal) siparisModal.style.display = 'block';
-    }
+        seciliMasaId = event.target.dataset.id;
+        db.collection('tables').doc(seciliMasaId).get().then(docSnap => {
+        if (docSnap.exists) {
+            const masaAdi = docSnap.data().name;
+            if (modalMasaNo) modalMasaNo.textContent = masaAdi;
+        } else {
+            if (modalMasaNo) modalMasaNo.textContent = `ID: ${seciliMasaId}`;
+        }
+    }).catch(error => {
+        console.error("Masa adı çekilirken hata:", error);
+        if (modalMasaNo) modalMasaNo.textContent = `ID: ${seciliMasaId}`;
+    });
+
+    sepet = {};
+    renderSepet(); // Bu zaten async ve Firestore'dan menüyü okuyor
+    renderKategoriler(); // Bu da async ve Firestore'dan menüyü okuyor
+    if (menuUrunlerDiv) menuUrunlerDiv.innerHTML = '';
+    if (siparisModal) siparisModal.style.display = 'block';
+}
 
     async function renderKategoriler() { // async yaptık
         // const menu = veriOku('menu', []); // ESKİ: localStorage'dan okuma
@@ -57,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const menuSnapshot = await db.collection('menuItems').orderBy('category').orderBy('name').get(); // Kategori ve isme göre sırala
             menuSnapshot.forEach(doc => {
-                menu.push({ id: parseInt(doc.id), ...doc.data() }); // doc.id'yi tekrar int'e çevirip ekle
+                menu.push({ id: doc.data().productId, firestoreDocId: doc.id, ...doc.data()});
             });
         } catch (error) {
             console.error("Firestore'dan menü okunurken hata:", error);
@@ -148,8 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const menuSnapshot = await db.collection('menuItems').get();
             menuSnapshot.forEach(doc => {
-                menu.push({ id: parseInt(doc.id), ...doc.data() });
-            });
+            menu.push({ id: doc.data().productId, firestoreDocId: doc.id, ...doc.data()});});
         } catch (error) {
             console.error("Sepet için Firestore'dan menü okunurken hata:", error);
             sepetListesiUl.innerHTML = '<li>Sepet yüklenirken bir hata oluştu.</li>';
@@ -195,65 +225,106 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     
-async function siparisOnayla() { // async yaptık
+    async function siparisOnayla() {
     if (Object.keys(sepet).length === 0 || seciliMasaId === null) {
-        // ...
+        alert("Sepetiniz boş veya bir masa seçilmedi!");
         return;
     }
-    const siparisler = veriOku('siparisler', []); // Bu hala localStorage, sonra değişecek
-    // const menu = veriOku('menu'); // ESKİ
 
-    let menu = []; // YENİ
+    // Gerekli verileri hazırla
+    const masaDocId = seciliMasaId; // Bu, masanın Firestore döküman ID'si (string)
+    let masaAdiText = `Masa ${masaDocId}`; // Varsayılan
+    if (modalMasaNo && modalMasaNo.textContent && !modalMasaNo.textContent.includes(`ID: ${masaDocId}`)) {
+        masaAdiText = modalMasaNo.textContent.replace(' - Menü', '').trim();
+    } else {
+        // Eğer modalMasaNo'da isim yoksa veya ID içeriyorsa, Firestore'dan çekelim
+        try {
+            const masaSnap = await db.collection('tables').doc(masaDocId).get();
+            if (masaSnap.exists) {
+                masaAdiText = masaSnap.data().name;
+            }
+        } catch (error) {
+            console.warn("Sipariş için masa adı çekilirken hata:", error);
+        }
+    }
+
+
+    let menu = []; // Menüyü Firestore'dan çekelim
     try {
         const menuSnapshot = await db.collection('menuItems').get();
         menuSnapshot.forEach(doc => {
-            menu.push({ id: parseInt(doc.id), ...doc.data() });
+            menu.push({
+                id: doc.data().productId, // Numerik productId'yi 'id' olarak alıyoruz
+                firestoreDocId: doc.id,
+                ...doc.data()
+            });
         });
     } catch (error) {
         console.error("Sipariş onayı için Firestore'dan menü okunurken hata:", error);
-        alert("Sipariş oluşturulurken bir hata oluştu, lütfen tekrar deneyin.");
+        alert("Sipariş oluşturulurken bir menü hatası oluştu, lütfen tekrar deneyin.");
         return;
     }
 
-    // ... (fonksiyonun geri kalanı ürünleri bu 'menu'den bulacak şekilde aynı)
     let siparisTotal = 0;
-    const siparisItems = [];
-    for (const urunIdStr in sepet) {
-        const urunId = parseInt(urunIdStr);
-        const adet = sepet[urunId];
-        const urun = menu.find(u => u.id === urunId);
+    const siparisItems = []; // Firestore'a yazılacak ürünler dizisi
+
+    for (const urunIdStr in sepet) { // Sepetteki productId'ler
+        const productId = parseInt(urunIdStr);
+        const adet = sepet[productId];
+        const urun = menu.find(u => u.id === productId); // Kendi productId'mizle eşleştir
+
         if (urun && adet > 0) {
-            siparisItems.push({ itemId: urun.id, itemName: urun.name, quantity: adet, price: urun.price }); // itemName ekleyebiliriz
+            siparisItems.push({
+                productId: urun.id, // Kendi numerik ID'miz
+                menuItemDocId: urun.firestoreDocId, // Ürünün Firestore döküman ID'si (opsiyonel)
+                name: urun.name,    // Ürün adı (denormalizasyon)
+                quantity: adet,
+                price: urun.price   // Ürünün o anki fiyatı (denormalizasyon)
+            });
             siparisTotal += adet * urun.price;
+        } else {
+            console.warn(`Sepetteki ürün (ID: ${productId}) menüde bulunamadı veya adet 0.`);
         }
     }
-        const yeniSiparis = {
-            id: yeniIdUret(), // ortak.js'den gelen fonksiyonla
-            tableId: seciliMasaId,
-            items: siparisItems, // Sepetteki ürünler { itemId, quantity, price } formatında
-            total: siparisTotal,
-            status: 'Bekliyor', // <<<--- BU ÇOK ÖNEMLİ
-            timestamp: new Date().toISOString(),
-            garsonId: null,      // <<<--- BU ÇOK ÖNEMLİ
-            // odemeZamani: null // Henüz ödenmedi
-        };
-        siparisler.push(yeniSiparis);
-        veriYaz('siparisler', siparisler);
 
-        // Masa durumunu güncelle
-        const masalar = veriOku('masalar');
-        const masaIndex = masalar.findIndex(m => m.id === seciliMasaId);
-        if (masaIndex !== -1) {
-            masalar[masaIndex].status = 'Dolu';
-            veriYaz('masalar', masalar);
-            renderMasalar();
-        }
-
-        alert(`Masa ${modalMasaNo ? modalMasaNo.textContent : seciliMasaId} için siparişiniz alındı! Toplam: ${siparisTotal.toFixed(2)} TL`);
-        sepet = {};
-        seciliMasaId = null;
-        kapatModal();
+    if (siparisItems.length === 0) {
+        alert("Siparişinizde geçerli ürün bulunamadı!");
+        return;
     }
+
+    const yeniSiparisData = {
+        originalOrderId: yeniIdUret(), // ortak.js'den kendi benzersiz numerik ID'miz
+        tableId: masaDocId,            // Masanın Firestore DÖKÜMAN ID'si
+        tableName: masaAdiText,        // Masa adı (denormalizasyon)
+        items: siparisItems,
+        total: siparisTotal,
+        status: 'Bekliyor',            // İlk durum
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(), // Firestore sunucu zamanı
+        garsonId: null,                // Henüz bir garson almadı
+        garsonName: null               // Henüz bir garson almadı
+        // paymentTimestamp: null     // Ödendiğinde eklenecek
+    };
+
+    try {
+        // Yeni siparişi Firestore'daki "activeOrders" koleksiyonuna ekle
+        const docRef = await db.collection('activeOrders').add(yeniSiparisData);
+        console.log("Yeni sipariş Firestore'a eklendi, ID: ", docRef.id);
+
+        // Masa durumunu Firestore'da "Dolu" olarak güncelle
+        const masaRef = db.collection('tables').doc(masaDocId);
+        await masaRef.update({ status: 'Dolu' });
+        console.log(`Masa ${masaDocId} durumu Firestore'da 'Dolu' olarak güncellendi.`);
+
+        alert(`Masa ${masaAdiText} için siparişiniz alındı! Toplam: ${siparisTotal.toFixed(2)} TL`);
+        sepet = {}; // Sepeti javascript tarafında boşalt
+        // seciliMasaId = null; // kapatModal içinde yapılıyor
+        kapatModal(); // Modal'ı kapat ve sepeti/arayüzü temizle
+
+    } catch (error) {
+        console.error("Firestore'a sipariş yazılırken veya masa güncellenirken hata: ", error);
+        alert("Siparişiniz oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.");
+    }
+}
 
     function kapatModal() {
         if(siparisModal) siparisModal.style.display = 'none';
