@@ -15,33 +15,121 @@ document.addEventListener('DOMContentLoaded', () => {
     const alinanListesiUl = document.getElementById('alinan-siparisler-listesi');
 
     // --- Uygulama Durumu ---
-    let aktifCalisan = null; // { id, username, role }
+    let aktifCalisanAuth = null;
 
     // --- Fonksiyonlar ---
+    // calisan.js - aktifCalisanAuth tanımından SONRA
 
-    function calisanGirisYap() {
-        if(!kullaniciAdiInput || !sifreInput || !hataMesajiP) return; // Elementler yoksa çık
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        aktifCalisanAuth = user; // Firebase Auth bilgisini sakla
 
-        const username = kullaniciAdiInput.value.trim();
-        const password = sifreInput.value;
-        hataMesajiP.style.display = 'none';
+        // Firestore'dan kullanıcı verilerini (rol dahil) çek
+        const calisanData = await getKullaniciData(user.uid); // YENİ ÇAĞRI
 
-        if (!username || !password) {
-            gosterHata("Kullanıcı adı ve şifre boş bırakılamaz.");
-            return;
-        }
-        // --->>> GİRİŞ YAPMADAN ÖNCE VERİLERİ KONTROL ET/YÜKLE <<<---
-        baslangicVerileriniYukle();
-        const kullanicilar = veriOku('kullanicilar');
-        const bulunanKullanici = kullanicilar.find(k => k.username === username && k.password === password && k.role === 'Garson');
-
-        if (bulunanKullanici) {
-            aktifCalisan = { id: bulunanKullanici.id, username: bulunanKullanici.username, role: bulunanKullanici.role };
-            girisBasarili();
+        if (calisanData && calisanData.role === 'Garson') {
+            // Kullanıcı Firestore'da bulundu VE rolü "Garson" ise
+            // aktifCalisanFirestoreData = calisanData; // İstersen tüm Firestore verisini saklayabilirsin
+            if (aktifCalisanAdiSpan) {
+                // username alanını Firestore'dan alalım, eğer yoksa e-postadan türetelim
+                aktifCalisanAdiSpan.textContent = ilkHarfiBuyut(calisanData.username || user.email.split('@')[0]);
+            }
+            girisBasariliArayuzunuGoster();
+            renderBekleyenSiparisler();
+            renderAlinanSiparisler();
         } else {
-            gosterHata("Kullanıcı adı veya şifre hatalı ya da Garson yetkiniz yok.");
+            // Kullanıcı Firestore'da bulunamadı VEYA rolü "Garson" değilse
+            console.log("Giriş reddedildi. Kullanıcı Firestore'da bulunamadı veya rolü Garson değil:", user.email);
+            gosterHata("Bu hesapla garson olarak giriş yapma yetkiniz yok veya hesap bilgileriniz eksik.");
+            await calisanCikisYapFirebase(); // Otomatik olarak çıkış yaptır
+        }
+
+    } else {
+        aktifCalisanAuth = null;
+        // aktifCalisanFirestoreData = null;
+        cikisYapildiArayuzunuGoster();
+    }
+
+    // Giriş/Çıkış butonlarının tıklanabilirliğini ayarla
+    if (girisYapBtn) {
+        girisYapBtn.disabled = !!user; // Eğer user varsa (giriş yapılmışsa) butonu KİTLE
+    }
+    if (cikisYapBtn) {
+        cikisYapBtn.disabled = !user; // Eğer user yoksa (çıkış yapılmışsa) butonu KİTLE
+    }
+});
+
+function girisBasariliArayuzunuGoster() {
+    if (calisanGirisFormu) calisanGirisFormu.style.display = 'none'; // Giriş formunu gizle
+    if (calisanIcerikDiv) calisanIcerikDiv.style.display = 'block';  // Çalışan içeriğini göster
+    if (calisanBilgiDiv) calisanBilgiDiv.style.display = 'flex';    // Sağ üstteki hoş geldin mesajını göster
+}
+
+function cikisYapildiArayuzunuGoster() {
+    if (calisanIcerikDiv) calisanIcerikDiv.style.display = 'none';   // Çalışan içeriğini gizle
+    if (calisanBilgiDiv) calisanBilgiDiv.style.display = 'none';    // Sağ üstteki hoş geldin mesajını gizle
+    if (calisanGirisFormu) calisanGirisFormu.style.display = 'block';  // Giriş formunu göster
+
+    if (kullaniciAdiInput) kullaniciAdiInput.value = ''; // E-posta input'unu temizle
+    if (sifreInput) sifreInput.value = '';             // Şifre input'unu temizle
+
+    // Listeleri de "giriş yapınız" mesajıyla güncelle
+    if (bekleyenListesiUl) bekleyenListesiUl.innerHTML = '<li>Siparişleri görmek için giriş yapınız.</li>';
+    if (alinanListesiUl) alinanListesiUl.innerHTML = '<li>Siparişleri görmek için giriş yapınız.</li>';
+}
+
+
+async function calisanGirisYapFirebase() {
+    if (!kullaniciAdiInput || !sifreInput || !hataMesajiP) return;
+
+    if (hataMesajiP) {
+        hataMesajiP.textContent = '';
+        hataMesajiP.style.display = 'none';
+    }
+
+    const email = kullaniciAdiInput.value.trim(); // HTML'deki input'tan e-postayı al
+    const password = sifreInput.value;
+    hataMesajiP.style.display = 'none'; // Önceki hata mesajını temizle
+
+    if (!email || !password) {
+        gosterHata("E-posta ve şifre boş bırakılamaz.");
+        return;
+    }
+
+    try {
+        // Firebase'e "bu e-posta ve şifreyle giriş yapmayı dene" diyoruz
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        // Eğer buraya geldiyse, Firebase girişi BAŞARILI buldu.
+        // `auth.onAuthStateChanged` zaten tetiklenecek ve arayüzü güncelleyecek.
+        console.log("Firebase'den giriş başarılı:", userCredential.user);
+        // Giriş başarılı olduğu için inputları temizleyebiliriz.
+        kullaniciAdiInput.value = '';
+        sifreInput.value = '';
+    } catch (error) {
+        console.error("Firebase giriş hatası:", error);
+        // Hata kodlarına göre daha anlaşılır mesajlar verelim
+        if (error.code === 'auth/user-not-found' ||
+            error.code === 'auth/wrong-password' ||
+            error.code === 'auth/invalid-credential' || // Bu da bazen gelebiliyor
+            error.code === 'auth/invalid-login-credentials') { // Senin aldığın hata
+            gosterHata("E-posta veya şifre hatalı. Lütfen kontrol edip tekrar deneyin.");
+        } else if (error.code === 'auth/invalid-email') {
+            gosterHata("Lütfen geçerli bir e-posta adresi girin.");
+        } else if (error.code === 'auth/too-many-requests') {
+            gosterHata("Çok fazla hatalı giriş denemesi yapıldı. Lütfen daha sonra tekrar deneyin.");
+        } else {
+            // Diğer beklenmedik hatalar için genel bir mesaj
+            gosterHata("Giriş sırasında bir sorun oluştu. Lütfen tekrar deneyin.");
+            // İstersen teknik hata kodunu da loglayabilirsin veya daha detaylı bir mesaj verebilirsin.
+            // gosterHata("Giriş sırasında bir sorun oluştu. Hata: " + error.message);
         }
     }
+}
+
+function ilkHarfiBuyut(str) {
+    if (!str) return ''; // Eğer string boşsa boş döndür
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase(); // İlk harfi büyüt, geri kalanını küçült
+}
 
     function gosterHata(mesaj) {
         if(hataMesajiP) {
@@ -50,29 +138,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function girisBasarili() {
-        if(calisanGirisFormu) calisanGirisFormu.style.display = 'none';
-        if(calisanIcerikDiv) calisanIcerikDiv.style.display = 'block';
-        if(calisanBilgiDiv) calisanBilgiDiv.style.display = 'flex';
-        if(aktifCalisanAdiSpan && aktifCalisan) aktifCalisanAdiSpan.textContent = aktifCalisan.username; // aktifCalisan kontrolü eklendi
-
-        renderBekleyenSiparisler();
-        renderAlinanSiparisler();
-        showToast("✔️ Giriş başarılı. Hoş geldin!", "success");
-    }
-
-    function calisanCikisYap() {
-        aktifCalisan = null;
-        if(calisanIcerikDiv) calisanIcerikDiv.style.display = 'none';
-        if(calisanBilgiDiv) calisanBilgiDiv.style.display = 'none';
-        if(calisanGirisFormu) calisanGirisFormu.style.display = 'block';
-        if(kullaniciAdiInput) kullaniciAdiInput.value = '';
-        if(sifreInput) sifreInput.value = '';
-        if(hataMesajiP) hataMesajiP.style.display = 'none';
+    async function calisanCikisYapFirebase() {
+        try {
+            // Firebase'e "mevcut kullanıcının çıkışını yap" diyoruz
+            await auth.signOut();
+            // `auth.onAuthStateChanged` zaten tetiklenecek ve arayüzü güncelleyecek.
+            console.log("Firebase'den çıkış yapıldı.");
+        } catch (error) {
+            console.error("Firebase çıkış hatası:", error);
+            alert("Çıkış yapılırken bir hata oluştu.");
+        }
     }
 
     /** Bekleyen siparişleri listeler */
     function renderBekleyenSiparisler() {
+        if (!aktifCalisanAuth) { // Eğer kimse giriş yapmamışsa
+            if (bekleyenListesiUl) bekleyenListesiUl.innerHTML = '<li>Lütfen önce giriş yapınız.</li>';
+            return; // Fonksiyondan çık, bir şey yapma
+        }
         if (!bekleyenListesiUl) return;
         const siparisler = veriOku('siparisler', []);
         const masalar = veriOku('masalar', []);
@@ -129,6 +212,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /** Alınan siparişleri listeler */
     function renderAlinanSiparisler() {
+        if (!aktifCalisanAuth) { // Eğer kimse giriş yapmamışsa
+            if (alinanListesiUl) alinanListesiUl.innerHTML = '<li>Lütfen önce giriş yapınız.</li>';
+            return; // Fonksiyondan çık, bir şey yapma
+        }
         if (!alinanListesiUl || !aktifCalisan) return;
         const siparisler = veriOku('siparisler', []);
         const masalar = veriOku('masalar', []);
@@ -180,6 +267,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /** "İşleme Al" butonuna tıklandığında çalışır */
     function islemeAl(event) {
+        if (!aktifCalisanAuth) { // Eğer kimse giriş yapmamışsa
+            alert("Bu işlemi yapmak için giriş yapmalısınız.");
+            return; // Fonksiyondan çık
+        }
         if (!aktifCalisan) return;
         const siparisId = parseInt(event.target.dataset.id);
         let siparisler = veriOku('siparisler', []);
@@ -191,7 +282,6 @@ document.addEventListener('DOMContentLoaded', () => {
             veriYaz('siparisler', siparisler);
             renderBekleyenSiparisler();
             renderAlinanSiparisler();
-            showToast("✔️ Sipariş başarıyla işleme alındı!", "success");
         } else {
             alert("Sipariş bulunamadı veya başka bir garson tarafından alınmış olabilir.");
             renderBekleyenSiparisler();
@@ -200,6 +290,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /** "Ödeme Yapıldı" butonuna tıklandığında çalışır */
     function odemeYapildi(event) {
+        if (!aktifCalisanAuth) { // Eğer kimse giriş yapmamışsa
+            alert("Bu işlemi yapmak için giriş yapmalısınız.");
+            return; // Fonksiyondan çık
+        }
         const siparisId = parseInt(event.target.dataset.id);
         let siparisler = veriOku('siparisler', []);
         let masalar = veriOku('masalar', []);
@@ -223,7 +317,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 veriYaz('masalar', masalar);
             }
             renderAlinanSiparisler();
-            showToast("✔️ Sipariş ödendi ve masa boşaltıldı.", "success");
         } else {
             alert("Ödenecek sipariş bulunamadı veya durumu değişmiş olabilir.");
             renderAlinanSiparisler();
@@ -272,13 +365,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Event Listener'lar ---
-    if(girisYapBtn) girisYapBtn.addEventListener('click', calisanGirisYap);
-    if(sifreInput) sifreInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') calisanGirisYap(); });
-    if(cikisYapBtn) cikisYapBtn.addEventListener('click', calisanCikisYap);
-
-    // --- Sayfa İlk Yüklendiğinde ---
-    if(calisanGirisFormu) calisanGirisFormu.style.display = 'block';
-    if(calisanIcerikDiv) calisanIcerikDiv.style.display = 'none';
-    if(calisanBilgiDiv) calisanBilgiDiv.style.display = 'none';
+    if (girisYapBtn) {
+        girisYapBtn.addEventListener('click', calisanGirisYapFirebase); // YENİ FONKSİYONA BAĞLA
+    }
+    if (sifreInput) {
+        sifreInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                calisanGirisYapFirebase(); // YENİ FONKSİYONA BAĞLA
+            }
+        });
+    }
+    if (cikisYapBtn) {
+        cikisYapBtn.addEventListener('click', calisanCikisYapFirebase); // YENİ FONKSİYONA BAĞLA
+    }
 
 }); // DOMContentLoaded Sonu

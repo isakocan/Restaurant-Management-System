@@ -1,20 +1,8 @@
 // app.js (TAMAMI - Güncellenmiş Hali)
-function toLowerTurkce(str) {
-    const harfler = {
-        'İ': 'i', 'I': 'ı', 'Ş': 'ş', 'Ğ': 'ğ',
-        'Ü': 'ü', 'Ö': 'ö', 'Ç': 'ç'
-    };
-    return str
-        .split('')
-        .map(k => harfler[k] || k)
-        .join('')
-        .toLowerCase();
-}
 
 document.addEventListener('DOMContentLoaded', () => {
     baslangicVerileriniYukle();
 
-    const menuAraInput = document.getElementById('menu-ara-input');
     const masaAlani = document.getElementById('masa-alani');
     const siparisModal = document.getElementById('siparis-modal');
     const modalMasaNo = document.getElementById('modal-masa-no');
@@ -63,42 +51,48 @@ document.addEventListener('DOMContentLoaded', () => {
         if(siparisModal) siparisModal.style.display = 'block';
     }
 
-    function renderKategoriler() {
-        const menu = veriOku('menu', []);
-        const kategoriler = [...new Set(menu.map(urun => urun.category))].sort();
-        if (!menuKategorilerDiv) return;
-        menuKategorilerDiv.innerHTML = '';
-        kategoriler.forEach((kategori, index) => {
-            const kategoriBtn = document.createElement('button');
-            kategoriBtn.textContent = kategori;
-            kategoriBtn.classList.add('kategori-btn');
-            kategoriBtn.addEventListener('click', () => kategoriSecildi(kategori));
-            menuKategorilerDiv.appendChild(kategoriBtn);
-            
-        });
-        setTimeout(() => {
-            const ilkKategoriBtn = menuKategorilerDiv.querySelector('.kategori-btn');
-            if (ilkKategoriBtn) ilkKategoriBtn.click();
-        }, 0); // 0 ms bile yetiyor, DOM boşluk yakalıyor
+    async function renderKategoriler() { // async yaptık
+        // const menu = veriOku('menu', []); // ESKİ: localStorage'dan okuma
+        let menu = []; // YENİ: Firestore'dan gelen menü burada olacak
+        try {
+            const menuSnapshot = await db.collection('menuItems').orderBy('category').orderBy('name').get(); // Kategori ve isme göre sırala
+            menuSnapshot.forEach(doc => {
+                menu.push({ id: parseInt(doc.id), ...doc.data() }); // doc.id'yi tekrar int'e çevirip ekle
+            });
+        } catch (error) {
+            console.error("Firestore'dan menü okunurken hata:", error);
+            if (menuKategorilerDiv) menuKategorilerDiv.innerHTML = '<p>Menü yüklenemedi.</p>';
+            if (menuUrunlerDiv) menuUrunlerDiv.innerHTML = '';
+            return;
+        }
+        const kategoriler = [...new Set(menu.map(urun => urun.category))].sort(); // Sıralama zaten Firestore'dan geldi ama emin olmak için
+    if (!menuKategorilerDiv) return;
+    menuKategorilerDiv.innerHTML = '';
+    kategoriler.forEach((kategori, index) => {
+        const kategoriBtn = document.createElement('button');
+        kategoriBtn.textContent = kategori;
+        kategoriBtn.classList.add('kategori-btn');
+        kategoriBtn.addEventListener('click', () => kategoriSecildi(kategori, menu)); // YENİ: menüyü de gönder
+        menuKategorilerDiv.appendChild(kategoriBtn);
+        if (index === 0 && kategoriler.length > 0) { // Kategori varsa ilkini seç
+            kategoriSecildi(kategori, menu); // YENİ: menüyü de gönder
+            kategoriBtn.classList.add('aktif');
+        }
+    });
+    if (kategoriler.length === 0 && menuKategorilerDiv) {
+        menuKategorilerDiv.innerHTML = '<p>Menüde kategori bulunamadı.</p>';
+    }
     }
 
-    function kategoriSecildi(kategoriAdi) {
+    function kategoriSecildi(kategoriAdi, menu) { // YENİ: menu parametresi eklendi
         document.querySelectorAll('.kategori-btn').forEach(btn => {
             btn.classList.remove('aktif');
             if (btn.textContent === kategoriAdi) {
                 btn.classList.add('aktif');
             }
         });
-        const menu = veriOku('menu');
-        let urunler = menu.filter(urun => urun.category === kategoriAdi);
-
-       // Arama filtreleme uygulanacak
-         const aramaKelimesi = menuAraInput ? menuAraInput.value.toLowerCase() : '';
-         if (aramaKelimesi) {
-             urunler = urunler.filter(urun =>
-            toLowerTurkce(urun.name).includes(aramaKelimesi)
-        );
-    }
+        // const menu = veriOku('menu'); // ESKİ: localStorage'dan okuma - ARTIK PARAMETRE OLARAK GELİYOR
+        const urunler = menu.filter(urun => urun.category === kategoriAdi);
         renderUrunler(urunler);
     }
 
@@ -144,17 +138,34 @@ document.addEventListener('DOMContentLoaded', () => {
         renderSepet();
     }
 
-    function renderSepet() {
+    async function renderSepet() { // async yaptık
         if (!sepetListesiUl || !sepetToplamSpan) return;
         sepetListesiUl.innerHTML = '';
         let toplamTutar = 0;
-        const menu = veriOku('menu');
-        for (const urunId in sepet) {
-             // ... (kod aynı) ...
+        // const menu = veriOku('menu'); // ESKİ: localStorage'dan okuma
+    
+        let menu = []; // YENİ: Firestore'dan gelen menü burada olacak
+        try {
+            const menuSnapshot = await db.collection('menuItems').get();
+            menuSnapshot.forEach(doc => {
+                menu.push({ id: parseInt(doc.id), ...doc.data() });
+            });
+        } catch (error) {
+            console.error("Sepet için Firestore'dan menü okunurken hata:", error);
+            sepetListesiUl.innerHTML = '<li>Sepet yüklenirken bir hata oluştu.</li>';
+            return;
+        }
+    
+        for (const urunIdStr in sepet) { // urunId string olarak gelebilir sepet objesinden
+            const urunId = parseInt(urunIdStr);
             const adet = sepet[urunId];
             if (adet <= 0) continue;
-            const urun = menu.find(u => u.id === parseInt(urunId));
-            if (!urun) continue;
+            const urun = menu.find(u => u.id === urunId); // Firestore'dan çektiğimiz menüden bul
+            if (!urun) {
+                console.warn(`Sepetteki ürün menüde bulunamadı: ID ${urunId}`);
+                continue;
+            }
+            // ... (fonksiyonun geri kalanı aynı) ...
             const li = document.createElement('li');
             const itemToplam = adet * urun.price;
             toplamTutar += itemToplam;
@@ -163,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button class="sepetten-cikar-btn" data-id="${urunId}">Çıkar</button>
             `;
             const cikarBtn = li.querySelector('.sepetten-cikar-btn');
-            if(cikarBtn) cikarBtn.addEventListener('click', sepettenCikar);
+            if(cikarBtn) cikarBtn.addEventListener('click', sepettenCikar); // sepettenCikar async değil, olabilir.
             sepetListesiUl.appendChild(li);
         }
         sepetToplamSpan.textContent = toplamTutar.toFixed(2);
@@ -176,33 +187,46 @@ document.addEventListener('DOMContentLoaded', () => {
             if (sepet[urunId] <= 0) delete sepet[urunId];
         }
         renderSepet();
-        showToast("➖ Ürün sepetten çıkarıldı.", "info");
     }
 
     function sepetiTemizle() {
         sepet = {};
         renderSepet();
-        showToast("🗑️ Sepet temizlendi.", "info");
     }
 
-    function siparisOnayla() {
-        if (Object.keys(sepet).length === 0 || seciliMasaId === null) {
-            showToast("⚠️ Sepetiniz boş veya masa seçilmedi!", "warning");
-            return;
+    
+async function siparisOnayla() { // async yaptık
+    if (Object.keys(sepet).length === 0 || seciliMasaId === null) {
+        // ...
+        return;
+    }
+    const siparisler = veriOku('siparisler', []); // Bu hala localStorage, sonra değişecek
+    // const menu = veriOku('menu'); // ESKİ
+
+    let menu = []; // YENİ
+    try {
+        const menuSnapshot = await db.collection('menuItems').get();
+        menuSnapshot.forEach(doc => {
+            menu.push({ id: parseInt(doc.id), ...doc.data() });
+        });
+    } catch (error) {
+        console.error("Sipariş onayı için Firestore'dan menü okunurken hata:", error);
+        alert("Sipariş oluşturulurken bir hata oluştu, lütfen tekrar deneyin.");
+        return;
+    }
+
+    // ... (fonksiyonun geri kalanı ürünleri bu 'menu'den bulacak şekilde aynı)
+    let siparisTotal = 0;
+    const siparisItems = [];
+    for (const urunIdStr in sepet) {
+        const urunId = parseInt(urunIdStr);
+        const adet = sepet[urunId];
+        const urun = menu.find(u => u.id === urunId);
+        if (urun && adet > 0) {
+            siparisItems.push({ itemId: urun.id, itemName: urun.name, quantity: adet, price: urun.price }); // itemName ekleyebiliriz
+            siparisTotal += adet * urun.price;
         }
-        const siparisler = veriOku('siparisler', []);
-        const menu = veriOku('menu');
-        let siparisTotal = 0;
-        const siparisItems = [];
-        for (const urunId in sepet) {
-             // ... (kod aynı) ...
-            const adet = sepet[urunId];
-            const urun = menu.find(u => u.id === parseInt(urunId));
-            if (urun && adet > 0) {
-                siparisItems.push({ itemId: urun.id, quantity: adet, price: urun.price });
-                siparisTotal += adet * urun.price;
-            }
-        }
+    }
         const yeniSiparis = {
             id: yeniIdUret(), // ortak.js'den gelen fonksiyonla
             tableId: seciliMasaId,
@@ -225,8 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderMasalar();
         }
 
-        showToast(`✔️ ${modalMasaNo ? modalMasaNo.textContent : seciliMasaId} için sipariş alındı!`, "success");
-
+        alert(`Masa ${modalMasaNo ? modalMasaNo.textContent : seciliMasaId} için siparişiniz alındı! Toplam: ${siparisTotal.toFixed(2)} TL`);
         sepet = {};
         seciliMasaId = null;
         kapatModal();
@@ -246,15 +269,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (siparisOnaylaBtn) siparisOnaylaBtn.addEventListener('click', siparisOnayla);
     if (sepetTemizleBtn) sepetTemizleBtn.addEventListener('click', sepetiTemizle);
     window.addEventListener('click', (event) => { if (event.target === siparisModal) kapatModal(); });
-
-    if (menuAraInput) {
-        menuAraInput.addEventListener('input', () => {
-            const aktifKategoriBtn = document.querySelector('.kategori-btn.aktif');
-            if (aktifKategoriBtn) {
-                kategoriSecildi(aktifKategoriBtn.textContent);
-            }
-        });
-    }
 
     // --- Sayfa İlk Yüklendiğinde ---
     renderMasalar();

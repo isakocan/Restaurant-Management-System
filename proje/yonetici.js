@@ -53,54 +53,131 @@ document.addEventListener('DOMContentLoaded', () => {
     const raporUrunAdetleriUl = document.getElementById('rapor-urun-adetleri');
 
     // --- Uygulama Durumu ---
-    let aktifYonetici = null; // { id, username, role, password }
+    let aktifYoneticiAuth = null;
 
     // --- Giriş / Çıkış Fonksiyonları ---
-    function yoneticiGirisYap() {
-        const kullaniciAdi = yoneticiKullaniciAdiInput.value.trim();
-        const sifre = yoneticiSifreInput.value;
-        yoneticiGirisHataMesaji.style.display = 'none';
 
-        if (!kullaniciAdi || !sifre) {
-            yoneticiGosterHata("Kullanıcı adı ve şifre boş bırakılamaz.");
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            aktifYoneticiAuth = user;
+    
+            // Firestore'dan kullanıcı verilerini (rol dahil) çek
+            const yoneticiData = await getKullaniciData(user.uid); // YENİ ÇAĞRI (ortak.js'deki aynı fonksiyonu kullanır)
+    
+            if (yoneticiData && yoneticiData.role === 'Yonetici') {
+                // Kullanıcı Firestore'da bulundu VE rolü "Yonetici" ise
+                // aktifYoneticiFirestoreData = yoneticiData;
+                if (yoneticiAdiSpan) {
+                    yoneticiAdiSpan.textContent = ilkHarfiBuyut(yoneticiData.username || user.email.split('@')[0]);
+                }
+    
+                yoneticiGirisBasariliArayuzunuGoster();
+    
+                // Yönetici paneli için gerekli verileri yükle
+                if(guncelYeniKullaniciAdiInput && aktifYoneticiAuth) { // aktifYoneticiAuth yerine yoneticiData kullanılabilir
+                     guncelYeniKullaniciAdiInput.value = ilkHarfiBuyut(yoneticiData.username || user.email.split('@')[0]);
+                }
+                // ... (diğer yüklemeler aynı kalır, hala localStorage kullanıyorlar)
+                kullanicilariYukle();
+                menuyuYukleYonetici();
+                if (raporTarihInput) raporTarihInput.valueAsDate = new Date();
+                raporGoster();
+    
+            } else {
+                // Kullanıcı Firestore'da bulunamadı VEYA rolü "Yonetici" değilse
+                console.log("Giriş reddedildi. Kullanıcı Firestore'da bulunamadı veya rolü Yonetici değil:", user.email);
+                yoneticiGosterHata("Bu hesapla yönetici olarak giriş yapma yetkiniz yok veya hesap bilgileriniz eksik.");
+                await yoneticiCikisYapFirebase(); // Otomatik olarak çıkış yaptır
+            }
+    
+        } else {
+        aktifYoneticiAuth = null;
+        // aktifYoneticiFirestoreData = null;
+        yoneticiCikisYapildiArayuzunuGoster();
+    }
+
+    // Butonların durumu
+    if (yoneticiGirisYapBtn) yoneticiGirisYapBtn.disabled = !!(user && yoneticiData && yoneticiData.role === 'Yonetici');
+    if (yoneticiCikisYapBtn) yoneticiCikisYapBtn.disabled = !(user && yoneticiData && yoneticiData.role === 'Yonetici');
+});
+
+    function ilkHarfiBuyut(str) {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    }
+
+
+    async function yoneticiGirisYapFirebase() {
+        if (!yoneticiKullaniciAdiInput || !yoneticiSifreInput || !yoneticiGirisHataMesaji) return;
+    
+        const email = yoneticiKullaniciAdiInput.value.trim();
+        const password = yoneticiSifreInput.value;
+        yoneticiGirisHataMesaji.style.display = 'none';
+    
+        if (!email || !password) {
+            yoneticiGosterHata("E-posta ve şifre boş bırakılamaz.");
             return;
         }
-        // Giriş yapmadan önce başlangıç verilerini yükle
-        baslangicVerileriniYukle();
-        const kullanicilar = veriOku('kullanicilar');
-        const bulunanKullanici = kullanicilar.find(k => k.username === kullaniciAdi && k.password === sifre && k.role === 'Yönetici'); // Rol kontrolü eklendi
-
-        if (bulunanKullanici) {
-            aktifYonetici = {
-                id: bulunanKullanici.id,
-                username: bulunanKullanici.username,
-                role: bulunanKullanici.role,
-                password: bulunanKullanici.password
-            };
-            yoneticiGirisBasarili();
-        } else {
-            yoneticiGosterHata("Kullanıcı adı veya şifre hatalı ya da Yönetici yetkiniz yok.");
+    
+        try {
+            const userCredential = await auth.signInWithEmailAndPassword(email, password);
+            console.log("Firebase'den yönetici girişi başarılı:", userCredential.user);
+            yoneticiKullaniciAdiInput.value = '';
+            yoneticiSifreInput.value = '';
+            // `auth.onAuthStateChanged` arayüzü güncelleyecek.
+        } catch (error) {
+            console.error("Firebase yönetici giriş hatası:", error);
+            if (error.code === 'auth/user-not-found' ||
+                error.code === 'auth/wrong-password' ||
+                error.code === 'auth/invalid-credential' ||
+                error.code === 'auth/invalid-login-credentials') {
+                yoneticiGosterHata("E-posta veya şifre hatalı. Lütfen kontrol edip tekrar deneyin.");
+            } else if (error.code === 'auth/invalid-email') {
+                yoneticiGosterHata("Lütfen geçerli bir e-posta adresi girin.");
+            } else if (error.code === 'auth/too-many-requests') {
+                yoneticiGosterHata("Çok fazla hatalı giriş denemesi yapıldı. Lütfen daha sonra tekrar deneyin.");
+            } else {
+                yoneticiGosterHata("Giriş sırasında bir sorun oluştu. Lütfen tekrar deneyin.");
+            }
         }
     }
 
-    function yoneticiGirisBasarili() {
-        if(yoneticiGirisFormu) yoneticiGirisFormu.style.display = 'none';
-        if(yonetimIcerik) yonetimIcerik.style.display = 'block';
-        if(yoneticiBilgiDiv) yoneticiBilgiDiv.style.display = 'flex';
-        if(yoneticiAdiSpan) yoneticiAdiSpan.textContent = aktifYonetici.username;
-
-        if(guncelYeniKullaniciAdiInput) guncelYeniKullaniciAdiInput.value = aktifYonetici.username;
-        if(guncelSifreInput) guncelSifreInput.value = '';
-        if(guncelYeniSifreInput) guncelYeniSifreInput.value = '';
-        if(profilGuncelleMesajP) {
-            profilGuncelleMesajP.textContent = '';
-            profilGuncelleMesajP.style.color = 'green';
+    function yoneticiGirisBasariliArayuzunuGoster() {
+        if (yoneticiGirisFormu) yoneticiGirisFormu.style.display = 'none';
+        if (yonetimIcerik) yonetimIcerik.style.display = 'block';
+        if (yoneticiBilgiDiv) yoneticiBilgiDiv.style.display = 'flex';
+    
+        // Profil güncelleme formu için kullanıcı adını ve şifre alanlarını hazırla
+        if (guncelYeniKullaniciAdiInput && aktifYoneticiAuth) { // aktifYoneticiAuth null değilse
+            guncelYeniKullaniciAdiInput.value = ilkHarfiBuyut(aktifYoneticiAuth.email.split('@')[0]);
         }
-        kullanicilariYukle();
-        menuyuYukleYonetici();
-        if(raporTarihInput) raporTarihInput.valueAsDate = new Date(); // Varsayılan tarih bugun
-        raporGoster(); // Başlangıçta bugünün raporunu göster
-        showToast("✔️ Yönetici girişi başarılı!", "success");
+        if (guncelSifreInput) guncelSifreInput.value = '';
+        if (guncelYeniSifreInput) guncelYeniSifreInput.value = '';
+        if (profilGuncelleMesajP) {
+            profilGuncelleMesajP.textContent = '';
+            profilGuncelleMesajP.style.color = 'green'; // veya varsayılan rengi
+        }
+    }
+    
+    function yoneticiCikisYapildiArayuzunuGoster() {
+        if (yonetimIcerik) yonetimIcerik.style.display = 'none';
+        if (yoneticiBilgiDiv) yoneticiBilgiDiv.style.display = 'none';
+        if (yoneticiGirisFormu) yoneticiGirisFormu.style.display = 'block';
+    
+        if (yoneticiKullaniciAdiInput) yoneticiKullaniciAdiInput.value = '';
+        if (yoneticiSifreInput) yoneticiSifreInput.value = '';
+        if (yoneticiGirisHataMesaji) yoneticiGirisHataMesaji.style.display = 'none';
+    
+        // Yönetici panelindeki listeleri/alanları temizle veya "giriş yapınız" mesajı göster
+        if (kullaniciListesiUl) kullaniciListesiUl.innerHTML = '<li>Garsonları görmek için giriş yapınız.</li>';
+        if (menuListesiYoneticiDiv) menuListesiYoneticiDiv.innerHTML = '<p>Menüyü görmek için giriş yapınız.</p>';
+        if (raporSonucDiv) { // raporSonucDiv bir container, içini temizlemek daha iyi olabilir
+            raporSonucDiv.innerHTML = '<h3>Raporları görmek için giriş yapınız.</h3>';
+            // veya spesifik rapor listelerini/özetlerini temizle:
+            // if(raporSiparisListesiUl) raporSiparisListesiUl.innerHTML = '';
+            // if(raporToplamCiroSpan) raporToplamCiroSpan.textContent = '0.00';
+            // if(raporUrunAdetleriUl) raporUrunAdetleriUl.innerHTML = '';
+        }
     }
 
     function yoneticiGosterHata(mesaj) {
@@ -110,18 +187,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function yoneticiCikisYap() {
-        aktifYonetici = null;
-        if(yonetimIcerik) yonetimIcerik.style.display = 'none';
-        if(yoneticiBilgiDiv) yoneticiBilgiDiv.style.display = 'none';
-        if(yoneticiGirisFormu) yoneticiGirisFormu.style.display = 'block';
-        if(yoneticiKullaniciAdiInput) yoneticiKullaniciAdiInput.value = '';
-        if(yoneticiSifreInput) yoneticiSifreInput.value = '';
-        if(yoneticiGirisHataMesaji) yoneticiGirisHataMesaji.style.display = 'none';
+    async function yoneticiCikisYapFirebase() {
+        try {
+            await auth.signOut();
+            console.log("Firebase'den yönetici çıkışı yapıldı.");
+            // `auth.onAuthStateChanged` arayüzü güncelleyecek.
+        } catch (error) {
+            console.error("Firebase yönetici çıkış hatası:", error);
+            alert("Çıkış yapılırken bir hata oluştu.");
+        }
     }
 
     // --- Profil Güncelleme Fonksiyonu ---
     function profilGuncelle() {
+        if (!aktifYoneticiAuth) {
+            alert("Bu işlemi yapmak için giriş yapmalısınız.");
+            return;
+        }
         if (!profilGuncelleMesajP || !guncelSifreInput || !guncelYeniKullaniciAdiInput || !aktifYonetici) return;
         profilGuncelleMesajP.textContent = '';
         profilGuncelleMesajP.style.color = 'red';
@@ -165,8 +247,6 @@ document.addEventListener('DOMContentLoaded', () => {
         veriYaz('kullanicilar', kullanicilar);
         if(yoneticiAdiSpan) yoneticiAdiSpan.textContent = aktifYonetici.username;
         profilGuncelleMesajP.textContent = "Profil bilgileriniz başarıyla güncellendi.";
-        showToast("✔️ Profil başarıyla güncellendi.", "success");
-
         profilGuncelleMesajP.style.color = 'green';
 
         guncelSifreInput.value = '';
@@ -187,6 +267,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function kullanicilariYukle() {
+        if (!aktifYoneticiAuth) {
+            if(kullaniciListesiUl) kullaniciListesiUl.innerHTML = '<li>Lütfen önce giriş yapınız.</li>';
+            return;
+        }
         if (!kullaniciListesiUl) return;
         const kullanicilar = veriOku('kullanicilar', []);
         kullaniciListesiUl.innerHTML = '';
@@ -246,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const password = yeniSifreInput.value;
 
         if (!username || (!id && !password)) {
-            showToast('⚠️ Kullanıcı adı ve şifre (yeni garson için) boş bırakılamaz.', 'warning');
+            alert('Kullanıcı adı ve şifre (yeni garson için) boş bırakılamaz.');
             return;
         }
 
@@ -255,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Kullanıcı adı başka bir kullanıcıda var mı kontrolü (kendisi hariç)
      const isUsernameTaken = kullanicilar.some(k => k.username.toLowerCase() === username.toLowerCase() && k.id !== id);
      if (isUsernameTaken) {
-        showToast(`❌ "${username}" kullanıcı adı başka bir garson tarafından kullanılıyor!`, 'error');
+         alert(`"${username}" kullanıcı adı başka bir garson tarafından kullanılıyor!`);
          return;
      }
 
@@ -276,7 +360,6 @@ document.addEventListener('DOMContentLoaded', () => {
         veriYaz('kullanicilar', kullanicilar);
         kullanicilariYukle();
         kullaniciFormunuTemizle();
-        showToast("✔️ Garson kaydedildi!", "success");
     }
 
     function kullaniciSil(event) {
@@ -288,23 +371,19 @@ document.addEventListener('DOMContentLoaded', () => {
          kullanicilar = kullanicilar.filter(k => !(k.id === kullaniciId && k.role === 'Garson')); // Sadece o ID'li garsonu sil
          veriYaz('kullanicilar', kullanicilar);
          kullanicilariYukle();
-         showToast("✔️ Garson silindi.", "success");
          // Silinen kullanıcı formdaysa temizle
          if (kullaniciEditIdInput && parseInt(kullaniciEditIdInput.value) === kullaniciId) {
              kullaniciFormunuTemizle();
          }
     }
 
-    // --- Menü Yönetimi Fonksiyonları ---
-    function urunFormunuTemizle() { /* kod aynı */ }
-    function menuyuYukleYonetici() { /* kod aynı */ }
-    function addMenuButtonListeners() { /* kod aynı */ }
-    function urunDuzenleFormunuDoldur(event) { /* kod aynı */ }
-    function urunKaydet() { /* kod aynı */ }
-    function urunSil(event) { /* kod aynı */ }
 
     // --- Raporlama Fonksiyonları ---
     function raporGoster() {
+        if (!aktifYoneticiAuth) {
+            if(raporSonucDiv) raporSonucDiv.innerHTML = '<h3>Lütfen önce giriş yapınız.</h3>';
+            return;
+        }
         if (!raporTarihInput) return; // Element yoksa çık
         const tarihString = raporTarihInput.value;
         if (!tarihString) {
@@ -412,9 +491,25 @@ function urunFormunuTemizle() {
     if(urunFiyatInput) urunFiyatInput.required = true; // Yeni eklerken fiyat zorunlu
 }
 
-function menuyuYukleYonetici() {
-    if (!menuListesiYoneticiDiv) return;
-    const menu = veriOku('menu', []);
+async function menuyuYukleYonetici() { 
+    if (!menuListesiYoneticiDiv || !aktifYoneticiAuth) {
+        if(menuListesiYoneticiDiv) menuListesiYoneticiDiv.innerHTML = '<p>Lütfen önce giriş yapınız.</p>';
+        return;
+    }
+    
+    let menu = []; 
+    try {
+        // Kategoriye ve isme göre sıralı getirelim
+        const menuSnapshot = await db.collection('menuItems').orderBy('category').orderBy('name').get();
+        menuSnapshot.forEach(doc => {
+            menu.push({ id: parseInt(doc.id), ...doc.data() });
+        });
+    } catch (error) {
+        console.error("Yönetici için Firestore'dan menü okunurken hata:", error);
+        menuListesiYoneticiDiv.innerHTML = '<p>Menü yüklenirken bir hata oluştu.</p>';
+        return;
+    }
+
     menuListesiYoneticiDiv.innerHTML = ''; // Önce temizle
 
     if (menu.length === 0) {
@@ -445,7 +540,7 @@ function menuyuYukleYonetici() {
             .forEach(urun => {
                 const li = document.createElement('li');
                 li.innerHTML = `
-                    <span>${urun.name} (${urun.price.toFixed(2)} TL) ${urun.description ? '- ' + urun.description : ''} </span>
+                    <span>${urun.name} (${urun.price.toFixed(2)} TL) ${urun.description ? '- ' + urun.description : ''} ${urun.photo ? '(Resimli)' : ''}</span>
                     <div>
                         <button class="urun-duzenle-btn" data-id="${urun.id}">Düzenle</button>
                         <button class="urun-sil-btn" data-id="${urun.id}">Sil</button>
@@ -470,74 +565,110 @@ function addMenuButtonListeners() {
     });
 }
 
-function urunDuzenleFormunuDoldur(event) {
-    const urunId = parseInt(event.target.dataset.id);
-    const menu = veriOku('menu', []);
-    const urun = menu.find(u => u.id === urunId);
+async function urunDuzenleFormunuDoldur(event) {
+    const urunId = event.target.dataset.id; // ID zaten string olacak (doc.id)
 
-    if (urun) {
-        if(urunEditIdInput) urunEditIdInput.value = urun.id;
-        if(urunAdiInput) urunAdiInput.value = urun.name;
-        if(urunKategoriInput) urunKategoriInput.value = urun.category;
-        if(urunFiyatInput) urunFiyatInput.value = urun.price;
-        if(urunAciklamaTextarea) urunAciklamaTextarea.value = urun.description || '';
-        if(urunFotoInput) urunFotoInput.value = urun.photo || '';
-        // if(urunAdiInput) urunAdiInput.disabled = true; // Ürün adı değiştirilebilsin
-        if(urunKaydetBtn) urunKaydetBtn.textContent = 'Güncelle';
-        if(urunFiyatInput) urunFiyatInput.required = true; // Fiyat hep zorunlu
+    try {
+        const docRef = db.collection('menuItems').doc(urunId); // Döküman ID'si string olmalı
+        const docSnap = await docRef.get();
+
+        if (docSnap.exists) {
+            const urun = { id: parseInt(docSnap.id), ...docSnap.data() }; // id'yi int yapalım (formda string de olabilir)
+            if(urunEditIdInput) urunEditIdInput.value = urun.id; // hidden input'a sakla
+            if(urunAdiInput) urunAdiInput.value = urun.name;
+            if(urunKategoriInput) urunKategoriInput.value = urun.category;
+            if(urunFiyatInput) urunFiyatInput.value = urun.price;
+            if(urunAciklamaTextarea) urunAciklamaTextarea.value = urun.description || '';
+            if(urunFotoInput) urunFotoInput.value = urun.photo || '';
+            if(urunKaydetBtn) urunKaydetBtn.textContent = 'Güncelle';
+        } else {
+            console.log("Düzenlenecek ürün Firestore'da bulunamadı:", urunId);
+            alert("Düzenlenecek ürün bulunamadı.");
+            urunFormunuTemizle(); // Formu temizle
+        }
+    } catch (error) {
+        console.error("Firestore'dan ürün düzenleme için okunurken hata:", error);
+        alert("Ürün bilgileri yüklenirken bir hata oluştu.");
     }
 }
 
-function urunKaydet() {
-    const id = urunEditIdInput.value ? parseInt(urunEditIdInput.value) : null;
+async function urunKaydet() { // async yaptık
+    const editIdStr = urunEditIdInput.value; // Bu string ID (eğer varsa)
     const name = urunAdiInput.value.trim();
     const category = urunKategoriInput.value.trim();
     const priceString = urunFiyatInput.value.trim();
     const description = urunAciklamaTextarea.value.trim();
-    const photo = urunFotoInput.value.trim();
+    const photo = urunFotoInput.value.trim() || null; // Boşsa null yapalım Firestore için
 
     if (!name || !category || !priceString) {
-        showToast('⚠️ Ürün adı, kategori ve fiyat boş bırakılamaz.', 'warning');
+        alert('Ürün adı, kategori ve fiyat boş bırakılamaz.');
         return;
     }
 
     const price = parseFloat(priceString);
     if (isNaN(price) || price < 0) {
-        showToast('⚠️ Geçerli bir fiyat girin (0 veya daha büyük).', 'warning');
+        alert('Lütfen geçerli bir fiyat girin (0 veya daha büyük).');
         return;
     }
 
-    let menu = veriOku('menu', []);
+    const urunData = {
+        name,
+        category,
+        price,
+        description,
+        photo
+    };
 
-    if (id) { // Güncelleme
-        const index = menu.findIndex(u => u.id === id);
-        if (index !== -1) {
-            menu[index] = { ...menu[index], name, category, price, description, photo }; // Tüm alanları güncelle
-            showToast("✔️ Ürün başarıyla güncellendi.", "success");
+
+    try {
+        if (editIdStr) { // Güncelleme
+            const docRef = db.collection('menuItems').doc(editIdStr); // Döküman ID'si olarak editIdStr'yi kullan
+            await docRef.update(urunData); // Sadece verilen alanları güncelle
+            // veya await docRef.set(urunData, { merge: true }); // Eğer tüm dökümanı değiştirmek istersen
+            alert(`"${name}" ürünü başarıyla güncellendi.`);
+        } else { // Yeni Ekleme
+            // Yeni ürün için Firestore'un otomatik ID oluşturmasını sağlayalım
+            // VEYA kendimiz bir ID üretebiliriz (örn: yeniIdUret() ile ve onu string'e çevirerek)
+            // Şimdilik Firestore'un ID'sini kullanalım ve ürünün kendi numerik ID'sini bir alan olarak ekleyelim:
+            // urunData.productId = yeniIdUret(); // Örnek: Eğer kendi numerik ID'nizi de saklamak isterseniz
+            // VEYA baştaki varsayıma göre, ürünün kendi ID'sini döküman ID'si yapacaksak:
+            const yeniUrunId = yeniIdUret(); // ortak.js'den numerik ID
+            urunData.originalId = yeniUrunId; // İstersen orijinal numerik ID'yi bir alanda tut
+                                            // ya da productId gibi bir alan ekle.
+                                            // Döküman ID'si için ise String(yeniUrunId) kullanacaksın.
+
+            // Döküman ID'si olarak ürünün kendi ID'sini (string) kullanacaksak ve bu ID formdan gelmiyorsa,
+            // ya yeni bir ID üretmeli ya da kullanıcıdan almalıyız.
+            // `baslangicVerileriniYukle`deki gibi ürün ID'sini döküman ID'si yapalım.
+            // Ancak yeni ürün eklerken bu ID'yi nasıl belirleyeceğiz?
+            // En iyisi, `productId` diye bir alan tutup, Firestore'un kendi ID'sini kullanmak.
+            // Şimdilik, başlangıçtaki `baslangicVerileriniYukle`deki mantığa sadık kalalım:
+            // Eğer ürünün ID'si `yeniIdUret` ile oluşturuluyorsa ve bu `varsayilanMenu`'deki gibi
+            // bir `id` alanı ise, onu döküman ID'si yapalım.
+
+            // Yeni ürün eklerken, ürünün `id`'sini de oluşturup döküman ID'si yapalım:
+            const yeniNumericId = yeniIdUret(); // ortak.js'den
+            const yeniDocId = String(yeniNumericId); // Firestore döküman ID'si için string
+
+            // Aynı isimde ürün var mı kontrolü (Firestore sorgusu ile yapılmalı - daha karmaşık)
+            // Şimdilik bu kontrolü atlıyoruz veya basit bir `menu.some` ile (ama menu Firestore'dan çekilmeli önce)
+
+            // Yeni ürünün verisi (originalId veya productId olmadan, çünkü doc ID'si kendi ID'si olacak)
+            const { originalId, ...safUrunData } = urunData; // Eğer yukarıda eklediysen çıkar
+
+            await db.collection('menuItems').doc(yeniDocId).set(safUrunData);
+            alert(`"${name}" ürünü başarıyla eklendi (ID: ${yeniDocId}).`);
         }
-    } else { // Yeni Ekleme
-        // Aynı isimde ürün var mı kontrolü (opsiyonel)
-        if (menu.some(u => u.name.toLowerCase() === name.toLowerCase())) {
-             showToast(`❌ "${name}" isimli ürün zaten var!`, "error");
-             return;
-        }
-        const yeniUrun = { id: yeniIdUret(), name, category, price, description, photo };
-        menu.push(yeniUrun);
-        showToast("✔️ Yeni ürün başarıyla eklendi.", "success");
+        menuyuYukleYonetici(); // Listeyi Firestore'dan yeniden yükle
+        urunFormunuTemizle();
+    } catch (error) {
+        console.error("Firestore menü kaydetme/güncelleme hatası:", error);
+        alert("Ürün kaydedilirken/güncellenirken bir hata oluştu.");
     }
-    
-
-    veriYaz('menu', menu);
-    menuyuYukleYonetici(); // Listeyi yenile
-    urunFormunuTemizle(); // Formu temizle
-
 }
 
-
-function urunSil(event) {
-     const urunId = parseInt(event.target.dataset.id);
-     const menu = veriOku('menu', []);
-     const urun = menu.find(u => u.id === urunId);
+async function urunSil(event) { // async yaptık
+    const urunDocId = event.target.dataset.id; 
 
      if (!urun) return; // Ürün yoksa çık
 
@@ -548,7 +679,7 @@ function urunSil(event) {
      let newMenu = menu.filter(u => u.id !== urunId);
      veriYaz('menu', newMenu);
      menuyuYukleYonetici(); // Listeyi yenile
-     showToast("✔️ Ürün silindi.", "success");
+
      // Silinen ürün formdaysa temizle
      if (urunEditIdInput && parseInt(urunEditIdInput.value) === urunId) {
          urunFormunuTemizle();
@@ -613,9 +744,20 @@ function toggleRaporDetay(event) {
 
 
     // --- Event Listener'lar ---
-    if(yoneticiGirisYapBtn) yoneticiGirisYapBtn.addEventListener('click', yoneticiGirisYap);
-    if(yoneticiSifreInput) yoneticiSifreInput.addEventListener('keypress', (event) => { /* ... */ });
-    if(yoneticiCikisYapBtn) yoneticiCikisYapBtn.addEventListener('click', yoneticiCikisYap);
+    if (yoneticiGirisYapBtn) {
+        yoneticiGirisYapBtn.addEventListener('click', yoneticiGirisYapFirebase); // YENİ
+    }
+    if (yoneticiSifreInput) {
+        yoneticiSifreInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                yoneticiGirisYapFirebase(); // YENİ
+            }
+        });
+    }
+    if (yoneticiCikisYapBtn) {
+        yoneticiCikisYapBtn.addEventListener('click', yoneticiCikisYapFirebase); // YENİ
+    }
+    
     if(profilGuncelleBtn) profilGuncelleBtn.addEventListener('click', profilGuncelle);
     if(kullaniciKaydetBtn) kullaniciKaydetBtn.addEventListener('click', kullaniciKaydet);
     if(kullaniciFormTemizleBtn) kullaniciFormTemizleBtn.addEventListener('click', kullaniciFormunuTemizle);
@@ -623,10 +765,5 @@ function toggleRaporDetay(event) {
     if(urunFormTemizleBtn) urunFormTemizleBtn.addEventListener('click', urunFormunuTemizle);
     if(raporGosterBtn) raporGosterBtn.addEventListener('click', raporGoster);
     if(tumRaporGosterBtn) tumRaporGosterBtn.addEventListener('click', tumRaporlariGoster);
-
-    // --- Sayfa İlk Yüklendiğinde ---
-    if(yoneticiGirisFormu) yoneticiGirisFormu.style.display = 'block';
-    if(yonetimIcerik) yonetimIcerik.style.display = 'none';
-    if(yoneticiBilgiDiv) yoneticiBilgiDiv.style.display = 'none';
 
 }); // DOMContentLoaded Sonu

@@ -1,5 +1,9 @@
 /* calisan-style.css */
 
+#bekleyen-siparisler {
+    margin-top: 300px; /* Değeri istediğin gibi ayarlayabilirsin (örn: 20px, 25px, 40px) */
+}
+
 /* --- Çalışan Paneli Sipariş Listeleri --- */
 .siparis-listesi {
     list-style: none;
@@ -7,26 +11,21 @@
     margin: 0;
 }
 
-
-  
 .siparis-listesi li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: nowrap; /* <<< BUNU WRAP DEĞİL YAPMA */
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid #f0f0f0; /* Ayırıcı çizgi */
     padding: 15px 10px;
-    gap: 10px;
-    border-bottom: 1px solid #f0f0f0;                /* Sarma olursa veya dikeyde boşluk için */
+    margin-bottom: 0;
+    display: flex;            /* Ana flex konteyner */
+    flex-wrap: wrap;          /* Detayların alta kayması için */
+    justify-content: space-between; /* Ana öğeleri (bilgi ve aksiyon) iki uca yasla */
+    align-items: center;      /* Bilgi ve aksiyonları dikeyde ortala */
+    gap: 10px;                /* Sarma olursa veya dikeyde boşluk için */
 }
 .siparis-listesi li:last-child {
     border-bottom: none;
 }
-
-#calisan-icerik {
-    padding-top: 30px;
-    padding-bottom: 25px;
-}
-  
 
 .siparis-listesi li:hover { /* Hover efekti */
     background-color: #f8f9fa;
@@ -36,12 +35,10 @@
 /* Sipariş Bilgisi (Sol Taraf) */
 .siparis-listesi li > span {
     font-weight: 500;
-    flex-grow: 1;
-    margin-right: 15px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-width: unset;
+    flex-grow: 1;         /* Mevcut alanı doldurur */
+    margin-right: 15px;   /* Butonlardan ayırmak için boşluk */
+    display: inline-block; /* VEYA display: block; deneyebilirsin */
+    min-width: 50%;    
 }
 
 /* Butonları Saran Div (Sağ Taraf) */
@@ -49,7 +46,6 @@
     display: flex;        /* İçindeki butonları yan yana dizer */
     flex-shrink: 0;       /* Buton grubunun daralmasını engeller */
     gap: 8px;             /* Butonlar arası boşluk */
-    margin-left: auto; /* <<< BU EN ÖNEMLİSİ */
     /* align-items: center; Zaten li'den alıyor olmalı */
 }
 
@@ -90,42 +86,17 @@
     font-size: 1.05em;
 }
 
-
+/* "Liste Boş" Mesajı Stili */
+.siparis-listesi li:only-child {
+    text-align: center;
+    padding: 25px 10px;
+    color: var(--secondary-color);
+    font-style: italic;
+    border-bottom: none;
+    background-color: transparent !important;
+    display: block; /* Tekrar block yapalım, flex'i ezsin */
+    font-size: 1.1em;
+}
 .siparis-listesi li:only-child:hover {
     background-color: transparent;
 }
-#toast-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;
-  }
-  
-  .toast {
-    background-color: #333;
-    color: #fff;
-    padding: 12px 20px;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    opacity: 0.95;
-    font-size: 0.95em;
-    animation: slideIn 0.4s ease, fadeOut 0.5s ease 2.5s forwards;
-  }
-  
-  .toast.success { background-color: #28a745; }  /* Yeşil */
-  .toast.error   { background-color: #dc3545; }  /* Kırmızı */
-  .toast.warning { background-color: #ffc107; color: #000; }  /* Sarı */
-  
-  @keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to   { transform: translateX(0); opacity: 0.95; }
-  }
-  
-  @keyframes fadeOut {
-    to   { opacity: 0; transform: translateX(100%); }
-  }
-  
-
-  
-/* --- BURAYA KADAR OLAN KISMI GÜNCELLE/DEĞİŞTİR --- */

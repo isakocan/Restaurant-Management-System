@@ -2,10 +2,10 @@
 
 /* Grid Layout (Kullanıcı/Menü Yönetimi) */
 #kullanici-yonetimi, #menu-yonetimi {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: minmax(320px, 1fr) 1.5fr; /* Form min genişlik, Liste daha geniş */
     gap: 30px;
- /* Önemli: Öğeleri dikeyde başa hizala */
+    align-items: start; /* Önemli: Öğeleri dikeyde başa hizala */
 }
 /* Mobil için Tek Sütun */
 @media (max-width: 800px) { /* Biraz daha geniş breakpoint */
@@ -14,16 +14,8 @@
     }
 }
 
-#yonetim-icerik {
-    padding-top: 30px;
-    padding-bottom: 30px;
-}
-
 .yonetim-form { /* Formun bulunduğu sütun */
-    max-width: 500px;        /* Genişlik sınırlaması */
-    margin: 0 auto;          /* Ortala */
-    width: 100%;             /* Mobil uyumluluk */
-    text-align: left;
+    text-align: left; /* Form kendi içinde sola yaslı */
 }
 
 .yonetim-form h3, .liste-alani h3 {
@@ -98,7 +90,16 @@
     border-radius: 0;
 }
 
-
+.liste-alani ul li:only-child { /* Yönetici listeleri */
+    text-align: center;
+    padding: 25px 15px;
+    color: var(--secondary-color);
+    font-style: italic;
+    border-bottom: none;
+    background-color: transparent !important;
+    display: block;
+    font-size: 1.1em;
+}
 .liste-alani ul li:only-child:hover {
     background-color: transparent;
 }
@@ -206,7 +207,15 @@
 }
 
 #rapor-siparis-listesi li:only-child, /* Rapor listeleri */
-
+#rapor-urun-adetleri li:only-child {
+    text-align: center;
+    padding: 25px 5px;
+    color: var(--secondary-color);
+    font-style: italic;
+    border-bottom: none;
+    display: block;
+    font-size: 1.1em;
+}
 #rapor-siparis-listesi li:only-child:hover,
 #rapor-urun-adetleri li:only-child:hover {
     background-color: transparent;
@@ -266,36 +275,3 @@
     font-size: 1.8em;
     font-weight: 700;
 }
-
-#toast-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;
-  }
-  
-  .toast {
-    background-color: #333;
-    color: #fff;
-    padding: 12px 20px;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    opacity: 0.95;
-    font-size: 0.95em;
-    animation: slideIn 0.4s ease, fadeOut 0.5s ease 2.5s forwards;
-  }
-  
-  .toast.success { background-color: #28a745; }  /* Yeşil */
-  .toast.error   { background-color: #dc3545; }  /* Kırmızı */
-  .toast.warning { background-color: #ffc107; color: #000; }  /* Sarı */
-  
-  @keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to   { transform: translateX(0); opacity: 0.95; }
-  }
-  
-  @keyframes fadeOut {
-    to   { opacity: 0; transform: translateX(100%); }
-  }
-  

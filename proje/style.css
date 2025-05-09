@@ -231,8 +231,7 @@ h2 { /* Bu genel h2, section içindekiler section stilinde ezilebilir */
 h3 { /* Bu genel h3 */
     font-weight: 500;
     color: var(--dark-color);
-    margin-bottom: 15px;
-    margin-top: 15px;
+    margin-bottom: 20px;
 }
 h4 { /* Bu genel h4 */
     font-weight: 500;
@@ -358,83 +357,3 @@ footer {
     box-sizing: border-box; /* Padding dahil */
     flex-shrink: 0; /* YENİ EKLENDİ - Küçülmesini engeller */
 }
-
-#logo a {
-    cursor: pointer;
-}
-#toast-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;
-  }
-  .toast {
-    padding: 12px 20px;
-    background-color: #28a745;
-    color: white;
-    border-radius: 6px;
-    margin-bottom: 10px;
-    font-size: 0.95em;
-    animation: slideIn 0.4s ease, fadeOut 0.5s ease 2.5s forwards;
-  }
-  .toast.success { background-color: #28a745; }
-  .toast.error { background-color: #dc3545; }
-  .toast.warning { background-color: #ffc107; color: #000; }
-  
-  @keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to   { transform: translateX(0); opacity: 1; }
-  }
-  @keyframes fadeOut {
-    to   { transform: translateX(100%); opacity: 0; }
-  }
-  #menu-ara-input {
-    width: 100%;
-    max-width: 300px;
-    padding: 10px 14px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 12px;
-    margin-bottom: 15px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    transition: all 0.2s ease;
-}
-
-#menu-ara-input:focus {
-    border-color: #007bff;
-    outline: none;
-    box-shadow: 0 0 4px rgba(0,123,255,0.4);
-}
-#menu-kategoriler {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-    margin-bottom: 20px;
-}
-
-#menu-ara-input {
-    display: block;
-    margin: 0 auto 20px auto;
-}
-.kategori-btn {
-    background-color: #f4f4f4;
-    border: none;
-    padding: 10px 10px;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.kategori-btn:hover {
-    background-color: #e2e2e2;
-}
-
-.kategori-btn.aktif {
-    background-color: #343a40;
-    color: white;
-    font-weight: bold;
-}
-
-
