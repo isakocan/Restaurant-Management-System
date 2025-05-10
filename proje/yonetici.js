@@ -177,12 +177,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 masalariYukleYonetici(); // Firestore kullanıyor
                 
                 if (raporTarihInput) {
-                  setTimeout(() => {
+                    console.log("onAuthStateChanged: Rapor bölümüne gelindi.");
+                    // 1. Tarih input'una bugünün tarihini ata
                     raporTarihInput.valueAsDate = new Date();
+                    console.log("onAuthStateChanged: raporTarihInput.valueAsDate atandı. Input'un güncel değeri:", raporTarihInput.value);
+
+                    // 2. Değerin DOM'a yansıması ve okunabilir olması için KISA bir bekleme yap.
+                    //    Bu, tarayıcıya input değerini işlemesi için zaman tanır.
                     setTimeout(() => {
-                      raporGoster();
-                    }, 100);
-                  }, 100);
+                        const guncelTarihDegeri = raporTarihInput.value;
+                        console.log("onAuthStateChanged (gecikmeli): raporGoster ÇAĞRILMADAN HEMEN ÖNCE. Tarih input değeri:", `"${guncelTarihDegeri}"`);
+                    
+                        if (guncelTarihDegeri && /^\d{4}-\d{2}-\d{2}$/.test(guncelTarihDegeri)) { // Değerin YYYY-MM-DD formatında olduğundan emin ol
+                            raporGoster(); // Şimdi raporu yükle
+                        } else {
+                            console.warn("onAuthStateChanged (gecikmeli): Tarih değeri geçerli formatta değil veya boş. Rapor gösterilmeyecek. Değer:", `"${guncelTarihDegeri}"`);
+                            // Hata durumunda kullanıcıya bilgi verilebilir.
+                            showToast("Rapor için tarih bilgisi alınamadı. Lütfen tarihi manuel seçin.", "warning");
+                             if (raporSonucDiv) raporSonucDiv.innerHTML = '<p>Rapor için tarih bilgisi alınamadı. Lütfen bir tarih seçip "Raporu Göster" butonuna tıklayın.</p>';
+                        }
+                    }, 150); // 150 milisaniye gibi küçük bir gecikme. Bu değeri gerekirse biraz artırıp azaltabilirsiniz.
                 }
 
 
@@ -698,16 +712,24 @@ async function urunSil(event) {
             if (raporSonucDivEl) raporSonucDivEl.innerHTML = '<p>Raporları görmek için giriş yapınız veya tarih alanı bulunamadı.</p>';
             return;
         }
-        const tarihString = raporTarihInputEl.value;
-        
-        if (!tarihString) {
-            showToast("Lütfen bir tarih seçin.", "warning");
+        let tarihString = raporTarihInputEl.value;
+        console.log("RAPOR_GOSTER: Fonksiyon başındaki tarihString:", `"${tarihString}"`);
+        if (!tarihString) { // Eğer tarih input'u boşsa (ilk yüklemede olabilir)
+            console.log("RAPOR_GOSTER: tarihString boş. Bugünkü tarihle dolduruluyor.");
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = (today.getMonth() + 1).toString().padStart(2, '0'); // Ay 0'dan başlar, +1 ekle ve 2 haneli yap
+            const day = today.getDate().toString().padStart(2, '0');       // Günü 2 haneli yap
+            tarihString = `${year}-${month}-${day}`; // YYYY-MM-DD formatına getir
 
-            if (raporSonucDivEl) raporSonucDivEl.innerHTML = '<p>Lütfen bir tarih seçerek raporu görüntüleyin.</p>';
-            return;
+            // Kullanıcının da görmesi için input'u güncelle (opsiyonel ama iyi olur)
+            if(raporTarihInputEl) raporTarihInputEl.value = tarihString;
+            console.log("Rapor tarihi boştu, bugünün tarihiyle ayarlandı:", tarihString);
         }
+        
         const baslangicZamani = new Date(tarihString + 'T00:00:00.000');
         const bitisZamani = new Date(tarihString + 'T23:59:59.999');
+        console.log("RAPOR_GOSTER: Firestore sorgusu için kullanılacak zaman aralığı:", baslangicZamani.toISOString(), "-", bitisZamani.toISOString());
 
         if (raporTarihBaslikSpanEl) raporTarihBaslikSpanEl.textContent = baslangicZamani.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
@@ -717,6 +739,7 @@ async function urunSil(event) {
                 .where('paymentTimestamp', '<=', firebase.firestore.Timestamp.fromDate(bitisZamani))
                 .orderBy('paymentTimestamp', 'desc')
                 .get();
+            console.log("RAPOR_GOSTER: Firestore querySnapshot.size:", querySnapshot.size)
             const raporSiparisleri = [];
             querySnapshot.forEach(doc => {
                 raporSiparisleri.push({ id: doc.id, ...doc.data() });
