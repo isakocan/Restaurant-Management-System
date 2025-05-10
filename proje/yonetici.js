@@ -176,28 +176,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 menuyuYukleYonetici(); // Firestore kullanıyor
                 masalariYukleYonetici(); // Firestore kullanıyor
                 
+                if (sessionStorage.getItem('yoneticiAutoRefreshed') !== 'true') {
+                console.log(">>> YONETICI: İlk giriş sonrası, otomatik sayfa yenileme tetikleniyor.");
+                sessionStorage.setItem('yoneticiAutoRefreshed', 'true');
+                location.reload();
+                return; // Sayfa yenileneceği için bu callback'in devam etmesine gerek yok.
+            } else {
+                // Sayfa zaten bir kere yenilenmiş veya yenilemeye gerek yok.
+                // Şimdi raporu yükleyebiliriz.
+                console.log(">>> YONETICI: Otomatik yenileme yapıldı veya gerekli değildi. Rapor yükleniyor.");
                 if (raporTarihInput) {
-                    console.log("onAuthStateChanged: Rapor bölümüne gelindi.");
-                    // 1. Tarih input'una bugünün tarihini ata
+                    console.log("onAuthStateChanged: Rapor bölümüne gelindi (yenileme sonrası).");
                     raporTarihInput.valueAsDate = new Date();
                     console.log("onAuthStateChanged: raporTarihInput.valueAsDate atandı. Input'un güncel değeri:", raporTarihInput.value);
 
-                    // 2. Değerin DOM'a yansıması ve okunabilir olması için KISA bir bekleme yap.
-                    //    Bu, tarayıcıya input değerini işlemesi için zaman tanır.
                     setTimeout(() => {
                         const guncelTarihDegeri = raporTarihInput.value;
                         console.log("onAuthStateChanged (gecikmeli): raporGoster ÇAĞRILMADAN HEMEN ÖNCE. Tarih input değeri:", `"${guncelTarihDegeri}"`);
-                    
-                        if (guncelTarihDegeri && /^\d{4}-\d{2}-\d{2}$/.test(guncelTarihDegeri)) { // Değerin YYYY-MM-DD formatında olduğundan emin ol
-                            raporGoster(); // Şimdi raporu yükle
+
+                        if (guncelTarihDegeri && /^\d{4}-\d{2}-\d{2}$/.test(guncelTarihDegeri)) {
+                            raporGoster();
                         } else {
                             console.warn("onAuthStateChanged (gecikmeli): Tarih değeri geçerli formatta değil veya boş. Rapor gösterilmeyecek. Değer:", `"${guncelTarihDegeri}"`);
-                            // Hata durumunda kullanıcıya bilgi verilebilir.
                             showToast("Rapor için tarih bilgisi alınamadı. Lütfen tarihi manuel seçin.", "warning");
-                             if (raporSonucDiv) raporSonucDiv.innerHTML = '<p>Rapor için tarih bilgisi alınamadı. Lütfen bir tarih seçip "Raporu Göster" butonuna tıklayın.</p>';
+                            if (raporSonucDiv) raporSonucDiv.innerHTML = '<p>Rapor için tarih bilgisi alınamadı. Lütfen bir tarih seçip "Raporu Göster" butonuna tıklayın.</p>';
                         }
-                    }, 150); // 150 milisaniye gibi küçük bir gecikme. Bu değeri gerekirse biraz artırıp azaltabilirsiniz.
+                    }, 250); // Gecikmeyi biraz artırdım (150ms idi), GitHub Pages için fark edebilir.
                 }
+            }
 
 
             } else {
@@ -249,6 +255,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await auth.signOut();
             console.log("Firebase'den yönetici çıkışı yapıldı.");
+            sessionStorage.removeItem('yoneticiAutoRefreshed');
+            console.log(">>> YONETICI: Çıkış yapıldı, 'yoneticiAutoRefreshed' flag'i temizlendi.");
         } catch (error) {
             console.error("Firebase yönetici çıkış hatası:", error);
             showToast("Çıkış yapılırken bir hata oluştu.", "error");
